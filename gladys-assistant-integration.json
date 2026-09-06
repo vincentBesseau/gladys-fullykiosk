@@ -6,8 +6,8 @@
     "en": "Discover Fully Kiosk tablets over MQTT and control them through their local HTTP API.",
     "fr": "Découvrez vos tablettes Fully Kiosk via MQTT et pilotez-les via leur API HTTP locale."
   },
-  "version": "0.2.0",
-  "docker_image": "ghcr.io/vincentbesseau/gladys-fullykiosk:0.2.0",
+  "version": "0.2.1",
+  "docker_image": "ghcr.io/vincentbesseau/gladys-fullykiosk:0.2.1",
   "gladys_version": ">=4.86.0",
   "cover_image": "https://raw.githubusercontent.com/vincentBesseau/gladys-fullykiosk/main/cover.jpg",
   "categories": ["multimedia"],

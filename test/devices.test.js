@@ -92,6 +92,17 @@ describe('convertToGladysDevice', () => {
     const device = convertToGladysDevice(gladys, normalizeDeviceInfo({ deviceId: 'abc123' }));
     assert.equal(device.name, 'Fully Kiosk abc123');
   });
+
+  test('every feature declares a non-null min/max (Gladys rejects the device otherwise)', () => {
+    const device = convertToGladysDevice(
+      gladys,
+      normalizeDeviceInfo({ deviceId: 'abc123', batteryLevel: 55, isPlugged: false }),
+    );
+    for (const feature of device.features) {
+      assert.notEqual(feature.min, undefined, `${feature.name}: min is missing`);
+      assert.notEqual(feature.max, undefined, `${feature.name}: max is missing`);
+    }
+  });
 });
 
 describe('buildStatesFromDeviceInfo', () => {
