@@ -1,0 +1,128 @@
+{
+  "manifest_version": 1,
+  "type": "device",
+  "name": "Fully Kiosk Browser",
+  "description": {
+    "en": "Discover Fully Kiosk tablets over MQTT and control them through their local HTTP API.",
+    "fr": "Découvrez vos tablettes Fully Kiosk via MQTT et pilotez-les via leur API HTTP locale."
+  },
+  "version": "0.0.1",
+  "docker_image": "ghcr.io/vincentbesseau/gladys-fullykiosk:0.0.1",
+  "gladys_version": ">=4.86.0",
+  "cover_image": "https://raw.githubusercontent.com/vincentBesseau/gladys-fullykiosk/main/cover.jpg",
+  "categories": ["multimedia"],
+  "transports": ["local"],
+  "config_schema": [
+    {
+      "key": "intro",
+      "type": "section",
+      "label": {
+        "en": "Fully Kiosk Browser, over MQTT + local HTTP",
+        "fr": "Fully Kiosk Browser, via MQTT + HTTP local"
+      },
+      "description": {
+        "en": "This integration discovers your Fully Kiosk Browser tablets from the MQTT status messages they already publish (enable \"MQTT\" in each tablet's Fully Kiosk settings, pointing at the same broker as below), then controls them through their local REST API. Fully Kiosk's REST API is protected by a password set per tablet (Fully Kiosk settings > Remote Administration) - enter it for each tablet at the bottom of this form so this integration can send commands to it.",
+        "fr": "Cette intégration découvre vos tablettes Fully Kiosk Browser à partir des messages de statut MQTT qu'elles publient déjà (activez « MQTT » dans les paramètres de chaque tablette Fully Kiosk, en pointant vers le même broker que ci-dessous), puis les pilote via leur API REST locale. L'API REST de Fully Kiosk est protégée par un mot de passe défini par tablette (paramètres Fully Kiosk > Administration à distance) - renseignez-le pour chaque tablette en bas de ce formulaire afin que cette intégration puisse lui envoyer des commandes."
+      }
+    },
+    {
+      "key": "mqtt_host",
+      "type": "string",
+      "label": {
+        "en": "MQTT broker host",
+        "fr": "Hôte du broker MQTT"
+      },
+      "placeholder": {
+        "en": "192.168.1.10",
+        "fr": "192.168.1.10"
+      },
+      "required": true
+    },
+    {
+      "key": "mqtt_port",
+      "type": "number",
+      "label": {
+        "en": "MQTT broker port",
+        "fr": "Port du broker MQTT"
+      },
+      "default": 1883
+    },
+    {
+      "key": "mqtt_use_tls",
+      "type": "boolean",
+      "label": {
+        "en": "Use TLS (mqtts://)",
+        "fr": "Utiliser TLS (mqtts://)"
+      },
+      "default": false
+    },
+    {
+      "key": "mqtt_username",
+      "type": "string",
+      "label": {
+        "en": "MQTT username",
+        "fr": "Identifiant MQTT"
+      }
+    },
+    {
+      "key": "mqtt_password",
+      "type": "secret",
+      "label": {
+        "en": "MQTT password",
+        "fr": "Mot de passe MQTT"
+      }
+    },
+    {
+      "key": "mqtt_topic_prefix",
+      "type": "string",
+      "label": {
+        "en": "MQTT topic prefix",
+        "fr": "Préfixe des topics MQTT"
+      },
+      "description": {
+        "en": "This integration subscribes to \"<prefix>/#\" and reads any JSON message that looks like a Fully Kiosk deviceInfo report. Must match the \"MQTT Report Topic\" root configured in each tablet's Fully Kiosk settings.",
+        "fr": "Cette intégration s'abonne à « <préfixe>/# » et lit tout message JSON qui ressemble à un rapport deviceInfo de Fully Kiosk. Doit correspondre à la racine du « MQTT Report Topic » configuré dans les paramètres Fully Kiosk de chaque tablette."
+      },
+      "placeholder": {
+        "en": "fully",
+        "fr": "fully"
+      },
+      "default": "fully"
+    },
+    {
+      "key": "http_use_https",
+      "type": "boolean",
+      "label": {
+        "en": "Tablets serve their REST API over HTTPS",
+        "fr": "Les tablettes exposent leur API REST en HTTPS"
+      },
+      "default": false
+    },
+    {
+      "key": "tablets",
+      "type": "string",
+      "label": {
+        "en": "Tablets - REST API password",
+        "fr": "Tablettes - mot de passe de l'API REST"
+      },
+      "description": {
+        "en": "One tablet per line: \"ip:password\", or \"ip:port:password\" if a tablet uses a REST port other than 2323. The IP must match the one the tablet reports over MQTT.",
+        "fr": "Une tablette par ligne : « ip:mot_de_passe », ou « ip:port:mot_de_passe » si une tablette utilise un port REST différent de 2323. L'IP doit correspondre à celle que la tablette annonce via MQTT."
+      },
+      "placeholder": {
+        "en": "192.168.1.50:MySecretPassword",
+        "fr": "192.168.1.50:MonMotDePasse"
+      }
+    }
+  ],
+  "actions": [
+    {
+      "key": "scan_now",
+      "label": {
+        "en": "Refresh the tablet list",
+        "fr": "Rafraîchir la liste des tablettes"
+      },
+      "timeout_seconds": 15
+    }
+  ]
+}
