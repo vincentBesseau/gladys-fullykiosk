@@ -105,9 +105,16 @@ export function buildMosquittoConfContent() {
     'listener 1883',
     'allow_anonymous false',
     'password_file /mosquitto/config/passwd',
-    'persistence true',
-    'persistence_location /mosquitto/data/',
-    'log_dest file /mosquitto/log/mosquitto.log',
+    // No persistence, no file logging: /mosquitto/data and /mosquitto/log are
+    // owned by this container's uid (see the file header), which the broker
+    // process cannot write into under Gladys' capabilities-dropped policy -
+    // confirmed live (recurring "Permission denied" every autosave_interval,
+    // and the log file itself failing to open at startup). stdout is
+    // collected by `docker logs` regardless of file permissions, and nothing
+    // in this integration relies on the broker surviving its own restart
+    // with retained state (Fully Kiosk re-publishes deviceInfo on its own).
+    'persistence false',
+    'log_dest stdout',
     '',
   ].join('\n');
 }

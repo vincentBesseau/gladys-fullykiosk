@@ -51,7 +51,6 @@ async function publishAllDiscovered() {
   const devices = [...knownDevices.values()].map((info) => convertToGladysDevice(gladys, info));
   try {
     await gladys.publishDiscoveredDevices(devices);
-    await gladys.setConnectionStatus(devices.length > 0).catch(() => {});
   } catch (e) {
     logger.error(`Fully Kiosk: unable to publish devices: ${e.message}`);
   }
