@@ -22,6 +22,7 @@ import {
   ensureManagedBrokerCredentials,
   findManagedBrokerHostPort,
   buildCredentialsMessage,
+  writeManagedBrokerConfig,
 } from './src/managedBroker.js';
 import {
   CONFIG_SCHEMA_KEYS,
@@ -141,9 +142,8 @@ async function resolveBrokerConnection(config) {
   }
 
   const { username, password } = await ensureManagedBrokerCredentials(gladys);
-  await gladys.startContainer(MANAGED_BROKER.CONTAINER_NAME, {
-    env: { MOSQUITTO_USERNAME: username, MOSQUITTO_PASSWORD: password },
-  });
+  writeManagedBrokerConfig(username, password);
+  await gladys.startContainer(MANAGED_BROKER.CONTAINER_NAME);
   return {
     url: `mqtt://${MANAGED_BROKER.CONTAINER_NAME}:${MANAGED_BROKER.CONTAINER_PORT}`,
     username,

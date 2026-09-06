@@ -1,11 +1,18 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { createFakeGladys } from './helpers/fakeGladys.js';
 import {
   generateManagedBrokerCredentials,
   ensureManagedBrokerCredentials,
   findManagedBrokerHostPort,
   buildCredentialsMessage,
+  buildMosquittoPasswordEntry,
+  buildMosquittoConfContent,
+  writeManagedBrokerConfig,
 } from '../src/managedBroker.js';
 
 describe('generateManagedBrokerCredentials', () => {
@@ -84,5 +91,65 @@ describe('buildCredentialsMessage', () => {
     const message = buildCredentialsMessage({ username: 'x', password: 'y', hostPort: null });
     assert.match(message.en, /not started yet/);
     assert.match(message.fr, /pas encore démarré/);
+  });
+});
+
+describe('buildMosquittoPasswordEntry', () => {
+  test('matches Mosquitto\'s "$7$<iterations>$<salt>$<hash>" format', () => {
+    const entry = buildMosquittoPasswordEntry('fullykiosk', 'secret');
+    assert.match(entry, /^fullykiosk:\$7\$101\$[A-Za-z0-9+/]{16}\$[A-Za-z0-9+/]{86}==$/);
+  });
+
+  test("the hash is reproducible from the entry's own salt/iterations (round-trip)", () => {
+    // This is a self-consistency check, not independent proof the scheme
+    // matches the real Mosquitto algorithm - that was verified manually
+    // against a real mosquitto broker (see src/managedBroker.js file header).
+    const entry = buildMosquittoPasswordEntry('fullykiosk', 'secret');
+    const [, , iterations, salt, hash] = entry.split('$');
+    const recomputed = crypto.pbkdf2Sync(
+      'secret',
+      Buffer.from(salt, 'base64'),
+      Number(iterations),
+      64,
+      'sha512',
+    );
+    assert.equal(recomputed.toString('base64'), hash);
+  });
+
+  test('generates a different salt (and hash) on every call', () => {
+    const a = buildMosquittoPasswordEntry('fullykiosk', 'secret');
+    const b = buildMosquittoPasswordEntry('fullykiosk', 'secret');
+    assert.notEqual(a, b);
+  });
+});
+
+describe('buildMosquittoConfContent', () => {
+  test('stays root (no privilege drop) and requires authentication', () => {
+    const conf = buildMosquittoConfContent();
+    assert.match(conf, /^user root$/m);
+    assert.match(conf, /^allow_anonymous false$/m);
+    assert.match(conf, /^password_file \/mosquitto\/config\/passwd$/m);
+  });
+});
+
+describe('writeManagedBrokerConfig', () => {
+  test('writes a world-readable mosquitto.conf and passwd file', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fullykiosk-managed-broker-'));
+    try {
+      writeManagedBrokerConfig('fullykiosk', 'secret', dir);
+
+      const conf = fs.readFileSync(path.join(dir, 'mosquitto.conf'), 'utf8');
+      assert.match(conf, /allow_anonymous false/);
+
+      const passwd = fs.readFileSync(path.join(dir, 'passwd'), 'utf8').trim();
+      assert.match(passwd, /^fullykiosk:\$7\$/);
+
+      for (const file of ['mosquitto.conf', 'passwd']) {
+        const mode = fs.statSync(path.join(dir, file)).mode & 0o777;
+        assert.equal(mode, 0o644, `${file} should be world-readable (0o644)`);
+      }
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

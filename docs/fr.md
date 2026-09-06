@@ -95,6 +95,13 @@ connues » de `gladys-sonos` pour des données propres à chaque cible.
   serveur Gladys - toute personne sur ce réseau disposant des identifiants
   générés peut s'y connecter. Sans problème sur un réseau domestique, à
   garder en tête sur un réseau partagé/non fiable.
+- Le fichier de mots de passe du broker dédié doit être lisible par tous
+  (Gladys exécute chaque sous-conteneur avec toutes les capacités Linux
+  supprimées, donc cette intégration ne peut pas en faire un `chown` vers
+  l'utilisateur propre du broker) - Mosquitto 2.0.18 se contente d'avertir à
+  ce sujet ; une future version de Mosquitto pourrait refuser de démarrer
+  dans ce cas, ce qui nécessiterait de revoir la version de l'image
+  Mosquitto figée par cette intégration.
 - Pas de retour en temps réel sur l'effet d'une commande : le tableau de bord
   ne reflète l'état réel d'une tablette qu'après son prochain rapport MQTT
   programmé (ou une interrogation manuelle).

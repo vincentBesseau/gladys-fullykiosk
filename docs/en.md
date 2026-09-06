@@ -87,6 +87,12 @@ field uses for per-target data.
 - Managed broker mode publishes the broker's port on your Gladys server's
   LAN - anyone on that network who has the generated credentials can connect
   to it. Fine for a home LAN, worth knowing on a shared/untrusted network.
+- The managed broker's password file has to be world-readable (Gladys runs
+  every sub-container with all Linux capabilities dropped, so this
+  integration cannot `chown` it to the broker's own user) - Mosquitto 2.0.18
+  only warns about this; a future Mosquitto version may refuse to start
+  under that condition, which would need this integration's pinned
+  Mosquitto image tag to be revisited.
 - No live push for commands' effect: the dashboard reflects a tablet's real
   state only after its next scheduled MQTT report (or a manual poll).
 - Fully Kiosk's exact MQTT/REST field names have drifted across app versions

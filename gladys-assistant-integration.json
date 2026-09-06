@@ -6,8 +6,8 @@
     "en": "Discover Fully Kiosk tablets over MQTT and control them through their local HTTP API.",
     "fr": "Découvrez vos tablettes Fully Kiosk via MQTT et pilotez-les via leur API HTTP locale."
   },
-  "version": "0.0.2",
-  "docker_image": "ghcr.io/vincentbesseau/gladys-fullykiosk:0.0.2",
+  "version": "0.0.3",
+  "docker_image": "ghcr.io/vincentbesseau/gladys-fullykiosk:0.0.3",
   "gladys_version": ">=4.86.0",
   "cover_image": "https://raw.githubusercontent.com/vincentBesseau/gladys-fullykiosk/main/cover.jpg",
   "categories": ["multimedia"],
@@ -27,12 +27,7 @@
         }
       ],
       "memory_mb": 64,
-      "cpu": 0.2,
-      "command": [
-        "sh",
-        "-c",
-        "set -e; mkdir -p /mosquitto/config /mosquitto/data /mosquitto/log; mosquitto_passwd -b -c /mosquitto/config/passwd \"$MOSQUITTO_USERNAME\" \"$MOSQUITTO_PASSWORD\"; chown mosquitto:mosquitto /mosquitto/config/passwd; printf 'listener 1883\\nallow_anonymous false\\npassword_file /mosquitto/config/passwd\\npersistence true\\npersistence_location /mosquitto/data/\\nlog_dest file /mosquitto/log/mosquitto.log\\n' > /mosquitto/config/mosquitto.conf; exec mosquitto -c /mosquitto/config/mosquitto.conf"
-      ]
+      "cpu": 0.2
     }
   ],
   "config_schema": [
