@@ -24,8 +24,10 @@ import {
   buildCredentialsMessage,
   writeManagedBrokerConfig,
 } from './src/managedBroker.js';
+import { setTabletCredential } from './src/tabletCredentials.js';
 import {
   CONFIG_SCHEMA_KEYS,
+  SET_TABLET_PASSWORD_FIELDS,
   BROKER_MODE,
   MANAGED_BROKER,
   DEFAULT_MQTT_PORT,
@@ -272,6 +274,28 @@ gladys.onAction('show_broker_credentials', async () => {
   const containers = await gladys.getContainers().catch(() => []);
   const hostPort = findManagedBrokerHostPort(containers);
   return buildCredentialsMessage({ username, password, hostPort });
+});
+
+// --- Manifest action: set one tablet's REST API password ---------------------
+gladys.onAction('set_tablet_password', async (fields) => {
+  const deviceExternalId = fields[SET_TABLET_PASSWORD_FIELDS.DEVICE];
+  const password = fields[SET_TABLET_PASSWORD_FIELDS.PASSWORD];
+  const port = fields[SET_TABLET_PASSWORD_FIELDS.PORT];
+  if (!deviceExternalId || !password) {
+    return {
+      en: 'Pick a tablet and enter its REST API password.',
+      fr: 'Choisissez une tablette et renseignez son mot de passe API REST.',
+    };
+  }
+  await setTabletCredential(gladys, deviceExternalId, {
+    password,
+    port: port ? Number(port) : undefined,
+  });
+  logger.info(`Action set_tablet_password -> saved for ${deviceExternalId}`);
+  return {
+    en: 'Password saved for this tablet.',
+    fr: 'Mot de passe enregistré pour cette tablette.',
+  };
 });
 
 // --- Configuration updated by the user (broker, topic prefix, passwords...) --

@@ -6,8 +6,8 @@
     "en": "Discover Fully Kiosk tablets over MQTT and control them through their local HTTP API.",
     "fr": "Découvrez vos tablettes Fully Kiosk via MQTT et pilotez-les via leur API HTTP locale."
   },
-  "version": "0.1.0",
-  "docker_image": "ghcr.io/vincentbesseau/gladys-fullykiosk:0.1.0",
+  "version": "0.2.0",
+  "docker_image": "ghcr.io/vincentbesseau/gladys-fullykiosk:0.2.0",
   "gladys_version": ">=4.86.0",
   "cover_image": "https://raw.githubusercontent.com/vincentBesseau/gladys-fullykiosk/main/cover.jpg",
   "categories": ["multimedia"],
@@ -39,8 +39,8 @@
         "fr": "Fully Kiosk Browser, via MQTT + HTTP local"
       },
       "description": {
-        "en": "This integration discovers your Fully Kiosk Browser tablets from MQTT status messages, then controls them through their local REST API. Fully Kiosk's REST API is protected by a password set per tablet (Fully Kiosk settings > Remote Administration) - enter it for each tablet at the bottom of this form so this integration can send commands to it.",
-        "fr": "Cette intégration découvre vos tablettes Fully Kiosk Browser à partir de messages de statut MQTT, puis les pilote via leur API REST locale. L'API REST de Fully Kiosk est protégée par un mot de passe défini par tablette (paramètres Fully Kiosk > Administration à distance) - renseignez-le pour chaque tablette en bas de ce formulaire afin que cette intégration puisse lui envoyer des commandes."
+        "en": "This integration discovers your Fully Kiosk Browser tablets from MQTT status messages, then controls them through their local REST API. Fully Kiosk's REST API is protected by a password set per tablet (Fully Kiosk settings > Remote Administration) - once a tablet is discovered and added below, use the \"Set a tablet's REST API password\" action to register it.",
+        "fr": "Cette intégration découvre vos tablettes Fully Kiosk Browser à partir de messages de statut MQTT, puis les pilote via leur API REST locale. L'API REST de Fully Kiosk est protégée par un mot de passe défini par tablette (paramètres Fully Kiosk > Administration à distance) - une fois une tablette découverte et ajoutée ci-dessous, utilisez l'action « Définir le mot de passe API REST d'une tablette » pour l'enregistrer."
       }
     },
     {
@@ -143,22 +143,6 @@
         "fr": "Les tablettes exposent leur API REST en HTTPS"
       },
       "default": false
-    },
-    {
-      "key": "tablets",
-      "type": "string",
-      "label": {
-        "en": "Tablets - REST API password",
-        "fr": "Tablettes - mot de passe de l'API REST"
-      },
-      "description": {
-        "en": "One tablet per line: \"ip:password\", or \"ip:port:password\" if a tablet uses a REST port other than 2323. The IP must match the one the tablet reports over MQTT.",
-        "fr": "Une tablette par ligne : « ip:mot_de_passe », ou « ip:port:mot_de_passe » si une tablette utilise un port REST différent de 2323. L'IP doit correspondre à celle que la tablette annonce via MQTT."
-      },
-      "placeholder": {
-        "en": "192.168.1.50:MySecretPassword",
-        "fr": "192.168.1.50:MonMotDePasse"
-      }
     }
   ],
   "actions": [
@@ -177,6 +161,47 @@
         "fr": "Afficher les identifiants du broker dédié"
       },
       "timeout_seconds": 10
+    },
+    {
+      "key": "set_tablet_password",
+      "label": {
+        "en": "Set a tablet's REST API password",
+        "fr": "Définir le mot de passe API REST d'une tablette"
+      },
+      "description": {
+        "en": "Pick a tablet already added to Gladys and enter the Remote Administration password set in its Fully Kiosk settings.",
+        "fr": "Choisissez une tablette déjà ajoutée à Gladys et renseignez le mot de passe d'administration à distance défini dans ses paramètres Fully Kiosk."
+      },
+      "timeout_seconds": 10,
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "label": {
+            "en": "Tablet",
+            "fr": "Tablette"
+          },
+          "source": "devices",
+          "required": true
+        },
+        {
+          "key": "password",
+          "type": "secret",
+          "label": {
+            "en": "REST API password (Fully Kiosk > Remote Administration)",
+            "fr": "Mot de passe API REST (Fully Kiosk > Administration à distance)"
+          },
+          "required": true
+        },
+        {
+          "key": "port",
+          "type": "number",
+          "label": {
+            "en": "REST port (leave empty for the default, 2323)",
+            "fr": "Port REST (laisser vide pour la valeur par défaut, 2323)"
+          }
+        }
+      ]
     }
   ]
 }

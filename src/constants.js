@@ -24,15 +24,28 @@ export const CONFIG_SCHEMA_KEYS = {
   MQTT_PASSWORD: 'mqtt_password',
   MQTT_TOPIC_PREFIX: 'mqtt_topic_prefix',
   HTTP_USE_HTTPS: 'http_use_https',
-  TABLETS: 'tablets',
 };
 
-// Config keys stored OUTSIDE the config_schema (generated secrets, never
-// typed by the user, never shown in the standard form) - the external
-// equivalent of the core's gladys.variable. See src/managedBroker.js.
+// Fields of the "set_tablet_password" manifest action (contract C.1: action
+// fields use the config_schema field format, including `select` with
+// `source: "devices"` - populated by Gladys with the integration's
+// already-created devices, no IP typing required).
+export const SET_TABLET_PASSWORD_FIELDS = {
+  DEVICE: 'device',
+  PASSWORD: 'password',
+  PORT: 'port',
+};
+
+// Config keys stored OUTSIDE the config_schema (never shown in the standard
+// form) - the external equivalent of the core's gladys.variable.
 export const CONFIG_KEYS = {
+  // Generated managed-broker credentials - see src/managedBroker.js.
   MANAGED_BROKER_USERNAME: 'managed_broker_username',
   MANAGED_BROKER_PASSWORD: 'managed_broker_password',
+  // Per-tablet REST API credentials, set via the "set_tablet_password"
+  // action - see src/tabletCredentials.js. Stored as a JSON string: a map of
+  // device external_id -> { password, port }.
+  TABLET_CREDENTIALS: 'tablet_credentials_json',
 };
 
 // Values of the `broker_mode` config field.

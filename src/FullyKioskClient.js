@@ -2,50 +2,12 @@
 // HTTP client for one tablet's Fully Kiosk REST API
 // (http(s)://<ip>:<port>/?cmd=<cmd>&password=<password>&type=json[&...]).
 //
-// Also parses the "tablets" config field (see gladys-assistant-integration.json):
-// one "ip[:port]:password" entry per line, used to know which password/port
-// to use for a given tablet IP - the closest available substitute for a true
-// per-device config field (Gladys external integrations only expose a flat,
-// integration-wide config_schema - see docs/en.md).
+// The password/port for a given tablet come from src/tabletCredentials.js
+// (set via the "set_tablet_password" manifest action), resolved together
+// with the tablet's MQTT-learned IP by resolveHttpTarget in devices.js.
 // -----------------------------------------------------------------------------
 
-import { DEFAULT_HTTP_PORT, FULLY_KIOSK_REST_TIMEOUT_MS, FULLY_CMD } from './constants.js';
-
-/**
- * Parse the "tablets" config field into a lookup by IP.
- * @param {string} raw - Raw config value, one "ip[:port]:password" entry per line or comma.
- * @returns {Map<string, {port: number, password: string}>} Entries keyed by IP.
- * @example
- * parseTablets('192.168.1.50:secret\n192.168.1.51:2323:other');
- * // Map { '192.168.1.50' => { port: 2323, password: 'secret' }, '192.168.1.51' => { port: 2323, password: 'other' } }
- */
-export function parseTablets(raw) {
-  const map = new Map();
-  if (!raw) {
-    return map;
-  }
-  const lines = String(raw)
-    .split(/[\n,]/)
-    .map((line) => line.trim())
-    .filter(Boolean);
-  for (const line of lines) {
-    const parts = line
-      .split(':')
-      .map((part) => part.trim())
-      .filter((part) => part.length > 0);
-    if (parts.length < 2) {
-      continue;
-    }
-    const [ip] = parts;
-    const password = parts[parts.length - 1];
-    const port = parts.length >= 3 ? Number(parts[1]) : DEFAULT_HTTP_PORT;
-    if (!ip || !password || !Number.isFinite(port)) {
-      continue;
-    }
-    map.set(ip, { port, password });
-  }
-  return map;
-}
+import { FULLY_KIOSK_REST_TIMEOUT_MS, FULLY_CMD } from './constants.js';
 
 /**
  * Build the base URL of a tablet's REST server.

@@ -20,7 +20,7 @@ Built on the [Gladys integration SDK](https://github.com/GladysAssistant/integra
 | Load URL / Text to speech                                               | Free-text features: write a value, the tablet acts on it immediately                                                                          |
 | Restart app / Reload start URL / Reboot device / Clear cache / Exit app | One-click button features                                                                                                                     |
 | Battery / Charging                                                      | Read-only, when reported                                                                                                                      |
-| **Tablets**                                                             | Per-tablet REST API password (`ip:password` lines) — the closest substitute to a per-device setting, see `docs/en.md`                         |
+| **Tablets**                                                             | Per-tablet REST API password set via the "Set a tablet's REST API password" action — a device dropdown, no IP to type, see `docs/en.md`       |
 
 No cloud account: MQTT broker and tablets are reached directly over the local network.
 
@@ -28,9 +28,10 @@ No cloud account: MQTT broker and tablets are reached directly over the local ne
 
 ```
 index.js                    SDK + MQTT wiring: handlers, discovery cache, manifest actions
-src/FullyKioskClient.js      Fully Kiosk REST client (sendCommand, getDeviceInfo) + "tablets" config parsing
+src/FullyKioskClient.js      Fully Kiosk REST client (sendCommand, getDeviceInfo)
 src/devices.js               deviceInfo normalization, Gladys device/feature conversion, command dispatch
 src/managedBroker.js         Managed-broker credential generation/persistence, sub-container port lookup
+src/tabletCredentials.js     Per-tablet REST API credentials (set via the "set_tablet_password" action)
 src/constants.js             config keys, REST commands, defaults
 ```
 

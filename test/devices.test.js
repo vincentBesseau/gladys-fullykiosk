@@ -120,10 +120,18 @@ describe('featureKeyFromExternalId', () => {
 });
 
 describe('resolveHttpTarget', () => {
-  const device = { name: 'Kitchen tablet', params: [{ name: 'ip4', value: '192.168.1.50' }] };
+  const device = {
+    name: 'Kitchen tablet',
+    external_id: 'ext:sel:fullykiosk:abc123',
+    params: [{ name: 'ip4', value: '192.168.1.50' }],
+  };
+  const configWith = (credential, extra = {}) => ({
+    tablet_credentials_json: JSON.stringify({ [device.external_id]: credential }),
+    ...extra,
+  });
 
-  test('resolves ip/port/password from the tablets config', () => {
-    const target = resolveHttpTarget({ tablets: '192.168.1.50:8080:secret' }, device);
+  test('resolves ip/port/password from the stored per-device credential', () => {
+    const target = resolveHttpTarget(configWith({ password: 'secret', port: 8080 }), device);
     assert.deepEqual(target, {
       ip: '192.168.1.50',
       port: 8080,
@@ -132,9 +140,14 @@ describe('resolveHttpTarget', () => {
     });
   });
 
+  test('falls back to the default REST port when none is stored', () => {
+    const target = resolveHttpTarget(configWith({ password: 'secret' }), device);
+    assert.equal(target.port, 2323);
+  });
+
   test('honors the global https toggle', () => {
     const target = resolveHttpTarget(
-      { tablets: '192.168.1.50:secret', http_use_https: true },
+      configWith({ password: 'secret' }, { http_use_https: true }),
       device,
     );
     assert.equal(target.useHttps, true);
@@ -144,8 +157,8 @@ describe('resolveHttpTarget', () => {
     assert.throws(() => resolveHttpTarget({}, { name: 'x', params: [] }), /no IP known/);
   });
 
-  test('throws when no password is configured for the IP', () => {
-    assert.throws(() => resolveHttpTarget({ tablets: '' }, device), /no REST API password/);
+  test('throws when no password is configured for this device', () => {
+    assert.throws(() => resolveHttpTarget({}, device), /no REST API password/);
   });
 });
 

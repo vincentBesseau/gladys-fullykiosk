@@ -13,7 +13,7 @@ import {
   DEVICE_FEATURE_TYPES,
   DEVICE_FEATURE_UNITS,
 } from '@gladysassistant/integration-sdk';
-import { parseTablets } from './FullyKioskClient.js';
+import { getTabletCredential } from './tabletCredentials.js';
 import { DEVICE_TYPE, CONFIG_SCHEMA_KEYS, DEFAULT_HTTP_PORT, FULLY_CMD } from './constants.js';
 
 /**
@@ -314,17 +314,16 @@ export function resolveHttpTarget(config, device) {
       `no IP known yet for "${device.name}" - waiting for its next MQTT status report`,
     );
   }
-  const tablets = parseTablets(config[CONFIG_SCHEMA_KEYS.TABLETS]);
-  const entry = tablets.get(ipParam.value);
-  if (!entry) {
+  const credential = getTabletCredential(config, device.external_id);
+  if (!credential || !credential.password) {
     throw new Error(
-      `no REST API password configured for tablet ${ipParam.value} - add "${ipParam.value}:<password>" in the integration configuration`,
+      `no REST API password configured for "${device.name}" - use the "Set a tablet's REST API password" action`,
     );
   }
   return {
     ip: ipParam.value,
-    port: entry.port || DEFAULT_HTTP_PORT,
-    password: entry.password,
+    port: credential.port || DEFAULT_HTTP_PORT,
+    password: credential.password,
     useHttps: !!config[CONFIG_SCHEMA_KEYS.HTTP_USE_HTTPS],
   };
 }

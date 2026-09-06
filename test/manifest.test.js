@@ -5,7 +5,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { CONFIG_SCHEMA_KEYS, DEFAULT_MQTT_TOPIC_PREFIX } from '../src/constants.js';
+import {
+  CONFIG_SCHEMA_KEYS,
+  SET_TABLET_PASSWORD_FIELDS,
+  DEFAULT_MQTT_TOPIC_PREFIX,
+} from '../src/constants.js';
 
 const manifest = JSON.parse(
   await readFile(new URL('../gladys-assistant-integration.json', import.meta.url), 'utf8'),
@@ -37,10 +41,24 @@ test('the manifest topic prefix default matches the code default', () => {
 
 test('every manifest action has a registered handler', () => {
   // Kept in sync by hand with index.js's gladys.onAction(...) calls.
-  const handled = new Set(['scan_now', 'show_broker_credentials']);
+  const handled = new Set(['scan_now', 'show_broker_credentials', 'set_tablet_password']);
   for (const action of manifest.actions ?? []) {
     assert.ok(handled.has(action.key), `manifest action "${action.key}" has no handler`);
   }
+});
+
+test('set_tablet_password lets the user pick an already-created device, no IP typing', () => {
+  const action = manifest.actions.find((a) => a.key === 'set_tablet_password');
+  assert.ok(action, 'manifest must declare a "set_tablet_password" action');
+
+  const deviceField = action.fields.find((f) => f.key === SET_TABLET_PASSWORD_FIELDS.DEVICE);
+  assert.ok(deviceField, 'set_tablet_password must have a "device" field');
+  assert.equal(deviceField.type, 'select');
+  assert.equal(deviceField.source, 'devices');
+
+  const passwordField = action.fields.find((f) => f.key === SET_TABLET_PASSWORD_FIELDS.PASSWORD);
+  assert.ok(passwordField, 'set_tablet_password must have a "password" field');
+  assert.equal(passwordField.type, 'secret');
 });
 
 test('the managed broker sub-container matches the code constants', () => {

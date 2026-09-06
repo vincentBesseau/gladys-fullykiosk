@@ -18,8 +18,9 @@ local HTTP REST API.
   app...) is sent straight to the tablet's own REST API
   (`http://<tablet-ip>:2323/?cmd=...`), which Fully Kiosk protects with a
   password set per tablet (Settings > Other Settings > Remote Administration >
-  Remote Admin Password). Enter that password for each tablet in this
-  integration's configuration.
+  Remote Admin Password). Register that password once the tablet has been
+  added to Gladys, using the **Set a tablet's REST API password** action - no
+  need to type its IP, pick it from the dropdown.
 
 ## MQTT broker: dedicated or existing
 
@@ -48,20 +49,23 @@ The **MQTT broker** configuration field offers two modes:
    (Settings > Other Settings > Remote Administration) and note the **Remote
    Admin Password** you set - Fully Kiosk's REST API needs it for every
    command.
-4. In the **Tablets** field, add one line per tablet: `ip:password` (or
-   `ip:port:password` if a tablet's REST port isn't the default 2323). The IP
-   must match the one the tablet reports over MQTT - a static DHCP
-   reservation for each tablet is recommended.
-5. Save, then run **Refresh the tablet list** (or open the Discovery tab) once
-   a tablet has sent its first MQTT report.
+4. Save, then run **Refresh the tablet list** (or open the Discovery tab) once
+   a tablet has sent its first MQTT report, and add it to Gladys.
+5. Run the **Set a tablet's REST API password** action, pick the tablet from
+   the dropdown (only already-added tablets show up there), and enter its
+   Remote Admin Password (and a custom REST port, if it isn't the default
+   2323). Repeat for each tablet.
 
-## Why not a per-tablet setting screen
+## Why an action instead of a config field
 
 Gladys external integrations only expose one flat, integration-wide
-configuration form - there is no per-device settings screen a user can fill
-in. The **Tablets** field above (one `ip:password` line per tablet) is the
-closest available substitute, the same pattern `gladys-sonos`'s "Known IPs"
-field uses for per-target data.
+configuration form - there is no built-in per-device settings screen. A
+manifest **action** can declare its own mini-form, though, including a
+dropdown pre-populated with the integration's already-created devices - the
+**Set a tablet's REST API password** action uses exactly that, so no one has
+to type or copy an IP address by hand. The password is stored keyed by the
+tablet's stable Gladys device id, not its IP, so it survives the tablet's
+next DHCP lease change unlike an IP-keyed list would.
 
 ## Available actions per tablet
 

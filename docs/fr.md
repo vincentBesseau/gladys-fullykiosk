@@ -20,8 +20,9 @@ reboot... - via leur API REST HTTP locale.
   tablette (`http://<ip-tablette>:2323/?cmd=...`), que Fully Kiosk protège
   par un mot de passe défini par tablette (Paramètres > Autres paramètres >
   Administration à distance > Mot de passe d'administration à distance).
-  Renseignez ce mot de passe pour chaque tablette dans la configuration de
-  cette intégration.
+  Enregistrez ce mot de passe une fois la tablette ajoutée à Gladys, via
+  l'action **Définir le mot de passe API REST d'une tablette** - pas besoin
+  de taper son IP, choisissez-la dans la liste déroulante.
 
 ## Broker MQTT : dédié ou existant
 
@@ -52,23 +53,27 @@ Le champ **Broker MQTT** de la configuration propose deux modes :
    (Paramètres > Autres paramètres > Administration à distance) et notez le
    **mot de passe d'administration à distance** défini - l'API REST de Fully
    Kiosk en a besoin pour chaque commande.
-4. Dans le champ **Tablettes**, ajoutez une ligne par tablette :
-   `ip:mot_de_passe` (ou `ip:port:mot_de_passe` si le port REST d'une
-   tablette n'est pas le port par défaut 2323). L'IP doit correspondre à
-   celle annoncée par la tablette via MQTT - une réservation DHCP statique
-   par tablette est recommandée.
-5. Enregistrez, puis lancez **Rafraîchir la liste des tablettes** (ou ouvrez
+4. Enregistrez, puis lancez **Rafraîchir la liste des tablettes** (ou ouvrez
    l'onglet Découverte) une fois qu'une tablette a envoyé son premier rapport
-   MQTT.
+   MQTT, et ajoutez-la à Gladys.
+5. Lancez l'action **Définir le mot de passe API REST d'une tablette**,
+   choisissez la tablette dans la liste déroulante (seules les tablettes déjà
+   ajoutées y apparaissent), puis renseignez son mot de passe d'administration
+   à distance (et un port REST personnalisé si ce n'est pas 2323 par défaut).
+   Répétez pour chaque tablette.
 
-## Pourquoi pas un écran de configuration par tablette
+## Pourquoi une action plutôt qu'un champ de configuration
 
 Les intégrations externes Gladys n'exposent qu'un seul formulaire de
 configuration global, commun à toute l'intégration - il n'existe pas d'écran
-de paramètres par appareil que l'utilisateur pourrait remplir. Le champ
-**Tablettes** ci-dessus (une ligne `ip:mot_de_passe` par tablette) est le
-substitut le plus proche disponible, le même principe que le champ « IPs
-connues » de `gladys-sonos` pour des données propres à chaque cible.
+de paramètres par appareil intégré. En revanche, une **action** du manifeste
+peut définir son propre mini-formulaire, y compris une liste déroulante
+pré-remplie avec les appareils déjà créés par l'intégration - c'est
+exactement ce qu'utilise l'action **Définir le mot de passe API REST d'une
+tablette**, pour éviter de devoir taper ou copier une adresse IP à la main.
+Le mot de passe est stocké par identifiant Gladys stable de la tablette, pas
+par IP, donc il survit à un changement de bail DHCP contrairement à une
+liste indexée par IP.
 
 ## Actions disponibles par tablette
 
