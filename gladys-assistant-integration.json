@@ -6,12 +6,35 @@
     "en": "Discover Fully Kiosk tablets over MQTT and control them through their local HTTP API.",
     "fr": "Découvrez vos tablettes Fully Kiosk via MQTT et pilotez-les via leur API HTTP locale."
   },
-  "version": "0.0.1",
-  "docker_image": "ghcr.io/vincentbesseau/gladys-fullykiosk:0.0.1",
+  "version": "0.0.2",
+  "docker_image": "ghcr.io/vincentbesseau/gladys-fullykiosk:0.0.2",
   "gladys_version": ">=4.86.0",
   "cover_image": "https://raw.githubusercontent.com/vincentBesseau/gladys-fullykiosk/main/cover.jpg",
   "categories": ["multimedia"],
   "transports": ["local"],
+  "containers": [
+    {
+      "name": "mosquitto",
+      "docker_image": "eclipse-mosquitto:2.0.18",
+      "start": "manual",
+      "volumes": ["/mosquitto/config", "/mosquitto/data", "/mosquitto/log"],
+      "ports": [
+        {
+          "container_port": 1883,
+          "name": "mqtt",
+          "label": { "en": "MQTT (managed broker)", "fr": "MQTT (broker dédié)" },
+          "browsable": false
+        }
+      ],
+      "memory_mb": 64,
+      "cpu": 0.2,
+      "command": [
+        "sh",
+        "-c",
+        "set -e; mkdir -p /mosquitto/config /mosquitto/data /mosquitto/log; mosquitto_passwd -b -c /mosquitto/config/passwd \"$MOSQUITTO_USERNAME\" \"$MOSQUITTO_PASSWORD\"; chown mosquitto:mosquitto /mosquitto/config/passwd; printf 'listener 1883\\nallow_anonymous false\\npassword_file /mosquitto/config/passwd\\npersistence true\\npersistence_location /mosquitto/data/\\nlog_dest file /mosquitto/log/mosquitto.log\\n' > /mosquitto/config/mosquitto.conf; exec mosquitto -c /mosquitto/config/mosquitto.conf"
+      ]
+    }
+  ],
   "config_schema": [
     {
       "key": "intro",
@@ -21,29 +44,57 @@
         "fr": "Fully Kiosk Browser, via MQTT + HTTP local"
       },
       "description": {
-        "en": "This integration discovers your Fully Kiosk Browser tablets from the MQTT status messages they already publish (enable \"MQTT\" in each tablet's Fully Kiosk settings, pointing at the same broker as below), then controls them through their local REST API. Fully Kiosk's REST API is protected by a password set per tablet (Fully Kiosk settings > Remote Administration) - enter it for each tablet at the bottom of this form so this integration can send commands to it.",
-        "fr": "Cette intégration découvre vos tablettes Fully Kiosk Browser à partir des messages de statut MQTT qu'elles publient déjà (activez « MQTT » dans les paramètres de chaque tablette Fully Kiosk, en pointant vers le même broker que ci-dessous), puis les pilote via leur API REST locale. L'API REST de Fully Kiosk est protégée par un mot de passe défini par tablette (paramètres Fully Kiosk > Administration à distance) - renseignez-le pour chaque tablette en bas de ce formulaire afin que cette intégration puisse lui envoyer des commandes."
+        "en": "This integration discovers your Fully Kiosk Browser tablets from MQTT status messages, then controls them through their local REST API. Fully Kiosk's REST API is protected by a password set per tablet (Fully Kiosk settings > Remote Administration) - enter it for each tablet at the bottom of this form so this integration can send commands to it.",
+        "fr": "Cette intégration découvre vos tablettes Fully Kiosk Browser à partir de messages de statut MQTT, puis les pilote via leur API REST locale. L'API REST de Fully Kiosk est protégée par un mot de passe défini par tablette (paramètres Fully Kiosk > Administration à distance) - renseignez-le pour chaque tablette en bas de ce formulaire afin que cette intégration puisse lui envoyer des commandes."
       }
+    },
+    {
+      "key": "broker_mode",
+      "type": "select",
+      "label": {
+        "en": "MQTT broker",
+        "fr": "Broker MQTT"
+      },
+      "description": {
+        "en": "\"Run a dedicated broker\": this integration starts and manages its own Mosquitto broker - nothing else to install, generated credentials shown by the \"Show managed broker credentials\" action below. \"Connect to an existing broker\": use the MQTT server you already run, with the fields further down.",
+        "fr": "« Lancer un broker dédié » : cette intégration démarre et gère son propre broker Mosquitto - rien d'autre à installer, identifiants générés affichés par l'action « Afficher les identifiants du broker dédié » ci-dessous. « Se connecter à un broker existant » : utilisez le serveur MQTT que vous avez déjà, avec les champs plus bas."
+      },
+      "options": [
+        {
+          "value": "managed",
+          "label": {
+            "en": "Run a dedicated broker (recommended)",
+            "fr": "Lancer un broker dédié (recommandé)"
+          }
+        },
+        {
+          "value": "external",
+          "label": {
+            "en": "Connect to an existing broker",
+            "fr": "Se connecter à un broker existant"
+          }
+        }
+      ],
+      "default": "managed"
     },
     {
       "key": "mqtt_host",
       "type": "string",
       "label": {
-        "en": "MQTT broker host",
-        "fr": "Hôte du broker MQTT"
+        "en": "MQTT broker host (external mode only)",
+        "fr": "Hôte du broker MQTT (mode externe uniquement)"
       },
       "placeholder": {
         "en": "192.168.1.10",
         "fr": "192.168.1.10"
-      },
-      "required": true
+      }
     },
     {
       "key": "mqtt_port",
       "type": "number",
       "label": {
-        "en": "MQTT broker port",
-        "fr": "Port du broker MQTT"
+        "en": "MQTT broker port (external mode only)",
+        "fr": "Port du broker MQTT (mode externe uniquement)"
       },
       "default": 1883
     },
@@ -51,8 +102,8 @@
       "key": "mqtt_use_tls",
       "type": "boolean",
       "label": {
-        "en": "Use TLS (mqtts://)",
-        "fr": "Utiliser TLS (mqtts://)"
+        "en": "Use TLS (mqtts://) (external mode only)",
+        "fr": "Utiliser TLS (mqtts://) (mode externe uniquement)"
       },
       "default": false
     },
@@ -60,16 +111,16 @@
       "key": "mqtt_username",
       "type": "string",
       "label": {
-        "en": "MQTT username",
-        "fr": "Identifiant MQTT"
+        "en": "MQTT username (external mode only)",
+        "fr": "Identifiant MQTT (mode externe uniquement)"
       }
     },
     {
       "key": "mqtt_password",
       "type": "secret",
       "label": {
-        "en": "MQTT password",
-        "fr": "Mot de passe MQTT"
+        "en": "MQTT password (external mode only)",
+        "fr": "Mot de passe MQTT (mode externe uniquement)"
       }
     },
     {
@@ -123,6 +174,14 @@
         "fr": "Rafraîchir la liste des tablettes"
       },
       "timeout_seconds": 15
+    },
+    {
+      "key": "show_broker_credentials",
+      "label": {
+        "en": "Show managed broker credentials",
+        "fr": "Afficher les identifiants du broker dédié"
+      },
+      "timeout_seconds": 10
     }
   ]
 }

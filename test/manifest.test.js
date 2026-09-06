@@ -37,10 +37,26 @@ test('the manifest topic prefix default matches the code default', () => {
 
 test('every manifest action has a registered handler', () => {
   // Kept in sync by hand with index.js's gladys.onAction(...) calls.
-  const handled = new Set(['scan_now']);
+  const handled = new Set(['scan_now', 'show_broker_credentials']);
   for (const action of manifest.actions ?? []) {
     assert.ok(handled.has(action.key), `manifest action "${action.key}" has no handler`);
   }
+});
+
+test('the managed broker sub-container matches the code constants', () => {
+  const container = manifest.containers.find((c) => c.name === 'mosquitto');
+  assert.ok(container, 'manifest must declare the "mosquitto" sub-container');
+  assert.equal(container.start, 'manual');
+  const mqttPort = container.ports.find((p) => p.container_port === 1883);
+  assert.ok(mqttPort, 'the mosquitto sub-container must publish port 1883');
+});
+
+test('the broker_mode field declares "managed" and "external" options', () => {
+  const field = manifest.config_schema.find((f) => f.key === CONFIG_SCHEMA_KEYS.BROKER_MODE);
+  assert.ok(field, 'manifest must declare a broker_mode field');
+  const values = field.options.map((o) => o.value);
+  assert.deepEqual(values.sort(), ['external', 'managed']);
+  assert.equal(field.default, 'managed');
 });
 
 test('declaring catalog categories requires Gladys >= 4.86.0', () => {

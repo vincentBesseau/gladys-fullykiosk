@@ -23,19 +23,35 @@ reboot... - via leur API REST HTTP locale.
   Renseignez ce mot de passe pour chaque tablette dans la configuration de
   cette intégration.
 
+## Broker MQTT : dédié ou existant
+
+Le champ **Broker MQTT** de la configuration propose deux modes :
+
+- **Lancer un broker dédié (recommandé)** : cette intégration démarre et
+  gère son propre broker Mosquitto (un sous-conteneur), avec un identifiant
+  et un mot de passe générés automatiquement. Rien d'autre à installer.
+  Utilisez l'action **Afficher les identifiants du broker dédié** (dans
+  l'onglet Configuration) pour récupérer l'adresse, l'identifiant et le mot
+  de passe à saisir dans les paramètres MQTT de chaque tablette.
+- **Se connecter à un broker existant** : si vous avez déjà un serveur MQTT
+  (Mosquitto, EMQX...), renseignez son hôte/port/identifiants dans les
+  champs prévus à cet effet.
+
 ## Configuration
 
-1. Dans l'application Fully Kiosk de chaque tablette, activez **MQTT**
-   (Paramètres > Autres paramètres > Paramètres MQTT) et pointez-la vers le
-   même broker que vous renseignerez ci-dessous - le topic exact que vous
-   définissez là-bas importe peu tant qu'il commence par le préfixe configuré
-   ici (`fully` par défaut).
-2. Toujours dans chaque tablette, activez **l'administration à distance**
+1. Choisissez le mode de broker (ci-dessus). Avec le mode dédié, enregistrez
+   d'abord la configuration une fois pour que le broker démarre et que les
+   identifiants soient générés, puis récupérez-les via l'action **Afficher
+   les identifiants du broker dédié**.
+2. Dans l'application Fully Kiosk de chaque tablette, activez **MQTT**
+   (Paramètres > Autres paramètres > Paramètres MQTT) et pointez-la vers
+   l'adresse/les identifiants du broker choisi à l'étape 1 - le topic exact
+   que vous définissez là-bas importe peu tant qu'il commence par le préfixe
+   configuré ici (`fully` par défaut).
+3. Toujours dans chaque tablette, activez **l'administration à distance**
    (Paramètres > Autres paramètres > Administration à distance) et notez le
    **mot de passe d'administration à distance** défini - l'API REST de Fully
    Kiosk en a besoin pour chaque commande.
-3. Ouvrez l'onglet **Configuration** de cette intégration et renseignez votre
-   broker MQTT (hôte, port, identifiants le cas échéant).
 4. Dans le champ **Tablettes**, ajoutez une ligne par tablette :
    `ip:mot_de_passe` (ou `ip:port:mot_de_passe` si le port REST d'une
    tablette n'est pas le port par défaut 2323). L'IP doit correspondre à
@@ -75,6 +91,10 @@ connues » de `gladys-sonos` pour des données propres à chaque cible.
 
 - Réseau local uniquement : pas de compte cloud, rien ne fonctionne si la
   tablette ou le broker MQTT est injoignable.
+- Le mode broker dédié publie le port du broker sur le réseau local de votre
+  serveur Gladys - toute personne sur ce réseau disposant des identifiants
+  générés peut s'y connecter. Sans problème sur un réseau domestique, à
+  garder en tête sur un réseau partagé/non fiable.
 - Pas de retour en temps réel sur l'effet d'une commande : le tableau de bord
   ne reflète l'état réel d'une tablette qu'après son prochain rapport MQTT
   programmé (ou une interrogation manuelle).

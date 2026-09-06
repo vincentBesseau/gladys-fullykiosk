@@ -21,18 +21,33 @@ local HTTP REST API.
   Remote Admin Password). Enter that password for each tablet in this
   integration's configuration.
 
+## MQTT broker: dedicated or existing
+
+The **MQTT broker** configuration field offers two modes:
+
+- **Run a dedicated broker (recommended)**: this integration starts and
+  manages its own Mosquitto broker (a sub-container), with an automatically
+  generated username and password - nothing else to install. Use the **Show
+  managed broker credentials** action (in the Configuration tab) to get the
+  address, username and password to enter in each tablet's MQTT settings.
+- **Connect to an existing broker**: if you already run an MQTT server
+  (Mosquitto, EMQX...), fill in its host/port/credentials in the fields
+  provided.
+
 ## Configuration
 
-1. In each tablet's Fully Kiosk app, enable **MQTT** (Settings > Other
-   Settings > MQTT Settings) and point it at the same broker you will enter
-   below - the exact topic you set there does not matter as long as it starts
-   with the prefix configured here (`fully` by default).
-2. In each tablet's Fully Kiosk app, also enable **Remote Administration**
+1. Pick a broker mode (above). With the dedicated mode, save the
+   configuration once first so the broker starts and its credentials get
+   generated, then fetch them with the **Show managed broker credentials**
+   action.
+2. In each tablet's Fully Kiosk app, enable **MQTT** (Settings > Other
+   Settings > MQTT Settings) and point it at the broker address/credentials
+   from step 1 - the exact topic you set there does not matter as long as it
+   starts with the prefix configured here (`fully` by default).
+3. In each tablet's Fully Kiosk app, also enable **Remote Administration**
    (Settings > Other Settings > Remote Administration) and note the **Remote
    Admin Password** you set - Fully Kiosk's REST API needs it for every
    command.
-3. Open this integration's **Configuration** tab and fill in your MQTT broker
-   (host, port, credentials if any).
 4. In the **Tablets** field, add one line per tablet: `ip:password` (or
    `ip:port:password` if a tablet's REST port isn't the default 2323). The IP
    must match the one the tablet reports over MQTT - a static DHCP
@@ -69,6 +84,9 @@ field uses for per-target data.
 
 - Local network only: no cloud account, nothing works if the tablet or the
   MQTT broker is unreachable.
+- Managed broker mode publishes the broker's port on your Gladys server's
+  LAN - anyone on that network who has the generated credentials can connect
+  to it. Fine for a home LAN, worth knowing on a shared/untrusted network.
 - No live push for commands' effect: the dashboard reflects a tablet's real
   state only after its next scheduled MQTT report (or a manual poll).
 - Fully Kiosk's exact MQTT/REST field names have drifted across app versions

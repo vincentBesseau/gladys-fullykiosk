@@ -16,6 +16,7 @@ export const DEVICE_TYPE = 'fullykiosk';
 
 // Config keys DECLARED in the config_schema (typed by the user in the UI).
 export const CONFIG_SCHEMA_KEYS = {
+  BROKER_MODE: 'broker_mode',
   MQTT_HOST: 'mqtt_host',
   MQTT_PORT: 'mqtt_port',
   MQTT_USE_TLS: 'mqtt_use_tls',
@@ -24,6 +25,34 @@ export const CONFIG_SCHEMA_KEYS = {
   MQTT_TOPIC_PREFIX: 'mqtt_topic_prefix',
   HTTP_USE_HTTPS: 'http_use_https',
   TABLETS: 'tablets',
+};
+
+// Config keys stored OUTSIDE the config_schema (generated secrets, never
+// typed by the user, never shown in the standard form) - the external
+// equivalent of the core's gladys.variable. See src/managedBroker.js.
+export const CONFIG_KEYS = {
+  MANAGED_BROKER_USERNAME: 'managed_broker_username',
+  MANAGED_BROKER_PASSWORD: 'managed_broker_password',
+};
+
+// Values of the `broker_mode` config field.
+export const BROKER_MODE = {
+  // This integration runs its own Mosquitto broker as a manifest
+  // sub-container (see `containers` in gladys-assistant-integration.json) -
+  // no separate MQTT server required from the user.
+  MANAGED: 'managed',
+  // The user already has an MQTT broker and provides its connection details
+  // (mqtt_host/mqtt_port/...).
+  EXTERNAL: 'external',
+};
+
+// The managed broker sub-container: name (also its DNS alias on the
+// integration's private Docker network, reachable from THIS container), and
+// the MQTT port it listens on internally (the host port it gets published on
+// is assigned by Gladys - see findManagedBrokerHostPort in managedBroker.js).
+export const MANAGED_BROKER = {
+  CONTAINER_NAME: 'mosquitto',
+  CONTAINER_PORT: 1883,
 };
 
 export const DEFAULT_MQTT_PORT = 1883;

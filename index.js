@@ -19,7 +19,14 @@ import {
   setDeviceValue,
 } from './src/devices.js';
 import {
+  ensureManagedBrokerCredentials,
+  findManagedBrokerHostPort,
+  buildCredentialsMessage,
+} from './src/managedBroker.js';
+import {
   CONFIG_SCHEMA_KEYS,
+  BROKER_MODE,
+  MANAGED_BROKER,
   DEFAULT_MQTT_PORT,
   DEFAULT_MQTT_TOPIC_PREFIX,
   REPUBLISH_DEBOUNCE_MS,
@@ -105,29 +112,79 @@ function disconnectMqtt() {
 }
 
 /**
+ * Resolve how to connect to the MQTT broker for the current config: either
+ * start (or confirm running) this integration's own Mosquitto sub-container
+ * ("managed" mode), or use the user-provided broker details ("external"
+ * mode) - stopping the sub-container if it was previously running, so
+ * switching modes never leaves an orphaned broker behind.
+ * @param {object} config - The integration config (gladys.getConfig()).
+ * @returns {Promise<{url: string, username?: string, password?: string}|null>} The
+ *   connection to use, or null when nothing is configured yet (external mode,
+ *   no host entered).
+ */
+async function resolveBrokerConnection(config) {
+  const mode = config[CONFIG_SCHEMA_KEYS.BROKER_MODE] || BROKER_MODE.MANAGED;
+
+  if (mode === BROKER_MODE.EXTERNAL) {
+    await gladys.stopContainer(MANAGED_BROKER.CONTAINER_NAME).catch(() => {});
+    const host = config[CONFIG_SCHEMA_KEYS.MQTT_HOST];
+    if (!host) {
+      return null;
+    }
+    const port = Number(config[CONFIG_SCHEMA_KEYS.MQTT_PORT]) || DEFAULT_MQTT_PORT;
+    const useTls = !!config[CONFIG_SCHEMA_KEYS.MQTT_USE_TLS];
+    return {
+      url: `${useTls ? 'mqtts' : 'mqtt'}://${host}:${port}`,
+      username: config[CONFIG_SCHEMA_KEYS.MQTT_USERNAME] || undefined,
+      password: config[CONFIG_SCHEMA_KEYS.MQTT_PASSWORD] || undefined,
+    };
+  }
+
+  const { username, password } = await ensureManagedBrokerCredentials(gladys);
+  await gladys.startContainer(MANAGED_BROKER.CONTAINER_NAME, {
+    env: { MOSQUITTO_USERNAME: username, MOSQUITTO_PASSWORD: password },
+  });
+  return {
+    url: `mqtt://${MANAGED_BROKER.CONTAINER_NAME}:${MANAGED_BROKER.CONTAINER_PORT}`,
+    username,
+    password,
+  };
+}
+
+/**
  * (Re)connect to the MQTT broker using the current integration config, and
  * subscribe to the configured topic prefix.
  * @returns {Promise<void>} Resolves once the connection attempt is wired up.
  */
 async function connectMqttFromConfig() {
   const config = (await gladys.getConfig()) || {};
-  const host = config[CONFIG_SCHEMA_KEYS.MQTT_HOST];
   disconnectMqtt();
 
-  if (!host) {
+  let connection;
+  try {
+    connection = await resolveBrokerConnection(config);
+  } catch (e) {
+    logger.error(`Fully Kiosk: unable to prepare the MQTT broker: ${e.message}`);
+    await gladys
+      .setConnectionStatus(false, {
+        en: `Broker error: ${e.message}`,
+        fr: `Erreur du broker : ${e.message}`,
+      })
+      .catch(() => {});
+    return;
+  }
+
+  if (!connection) {
     logger.info('Fully Kiosk: no MQTT broker configured yet, waiting for configuration.');
     return;
   }
 
-  const port = Number(config[CONFIG_SCHEMA_KEYS.MQTT_PORT]) || DEFAULT_MQTT_PORT;
-  const useTls = !!config[CONFIG_SCHEMA_KEYS.MQTT_USE_TLS];
   const topicPrefix = config[CONFIG_SCHEMA_KEYS.MQTT_TOPIC_PREFIX] || DEFAULT_MQTT_TOPIC_PREFIX;
-  const url = `${useTls ? 'mqtts' : 'mqtt'}://${host}:${port}`;
 
-  logger.info(`Fully Kiosk: connecting to MQTT broker ${url}...`);
-  mqttClient = mqtt.connect(url, {
-    username: config[CONFIG_SCHEMA_KEYS.MQTT_USERNAME] || undefined,
-    password: config[CONFIG_SCHEMA_KEYS.MQTT_PASSWORD] || undefined,
+  logger.info(`Fully Kiosk: connecting to MQTT broker ${connection.url}...`);
+  mqttClient = mqtt.connect(connection.url, {
+    username: connection.username,
+    password: connection.password,
     reconnectPeriod: 5000,
   });
 
@@ -201,6 +258,21 @@ gladys.onAction('scan_now', async () => {
     en: `${knownDevices.size} tablet(s) known.`,
     fr: `${knownDevices.size} tablette(s) connue(s).`,
   };
+});
+
+// --- Manifest action: reveal the managed broker's credentials ----------------
+gladys.onAction('show_broker_credentials', async () => {
+  const config = (await gladys.getConfig()) || {};
+  if ((config[CONFIG_SCHEMA_KEYS.BROKER_MODE] || BROKER_MODE.MANAGED) !== BROKER_MODE.MANAGED) {
+    return {
+      en: 'The managed broker is not enabled (Broker mode is set to "Connect to an existing broker").',
+      fr: "Le broker dédié n'est pas activé (le mode broker est réglé sur « Se connecter à un broker existant »).",
+    };
+  }
+  const { username, password } = await ensureManagedBrokerCredentials(gladys);
+  const containers = await gladys.getContainers().catch(() => []);
+  const hostPort = findManagedBrokerHostPort(containers);
+  return buildCredentialsMessage({ username, password, hostPort });
 });
 
 // --- Configuration updated by the user (broker, topic prefix, passwords...) --
