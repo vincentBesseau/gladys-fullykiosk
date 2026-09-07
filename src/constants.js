@@ -76,8 +76,10 @@ export const DEFAULT_HTTP_PORT = 2323;
 // tablet. Fully Kiosk's own periodic MQTT report does not necessarily carry
 // every field (e.g. "current page" was observed missing from it, present in
 // the full HTTP deviceInfo response) - polling is this integration's only
-// way to keep those fields fresh, not just a startup fallback.
-export const POLL_FREQUENCY_IN_MS = 60 * 1000;
+// way to keep those fields fresh, not just a startup fallback. 10 minutes:
+// a kiosk's foreground page does not need second-by-second freshness, and
+// this is one extra HTTP request to the tablet per tick.
+export const POLL_FREQUENCY_IN_MS = 10 * 60 * 1000;
 
 // Fully Kiosk's own REST server can be slow to answer while the tablet is
 // asleep/under load - long enough to cover that, short enough to not hang a
