@@ -234,11 +234,13 @@ gladys.onSetValue(async (device, feature, value) => {
 // Fallback / on-demand refresh, complementing the MQTT push - useful right
 // after a tablet is created, before its next scheduled MQTT report.
 gladys.onPoll(async (device) => {
+  logger.info(`onPoll <- ${device.name}`);
   try {
     const config = (await gladys.getConfig()) || {};
     const target = resolveHttpTarget(config, device);
     const deviceInfo = normalizeDeviceInfo(await getDeviceInfo(target));
     if (!deviceInfo) {
+      logger.info(`onPoll -> ${device.name}: deviceInfo response was not recognized`);
       return;
     }
     knownDevices.set(deviceInfo.deviceId, deviceInfo);
@@ -246,8 +248,9 @@ gladys.onPoll(async (device) => {
     if (states.length > 0) {
       await gladys.publishStates(states);
     }
+    logger.info(`onPoll -> ${device.name}: published ${states.length} state(s)`);
   } catch (e) {
-    logger.debug(`Fully Kiosk: poll failed for ${device.name}: ${e.message}`);
+    logger.error(`onPoll -> ${device.name} failed: ${e.message}`);
   }
 });
 
