@@ -88,6 +88,12 @@ next DHCP lease change unlike an IP-keyed list would.
 
 - Local network only: no cloud account, nothing works if the tablet or the
   MQTT broker is unreachable.
+- The "Set a tablet's REST API password" action shows the password in clear
+  while you type it - Gladys does not mask `secret`-type fields inside an
+  action's own form (only in the main Configuration form), so this
+  integration uses a plain field there instead of a broken masked one. The
+  value is still stored securely server-side and never displayed again
+  afterwards.
 - Managed broker mode publishes the broker's port on your Gladys server's
   LAN - anyone on that network who has the generated credentials can connect
   to it. Fine for a home LAN, worth knowing on a shared/untrusted network.

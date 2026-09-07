@@ -96,6 +96,13 @@ liste indexée par IP.
 
 - Réseau local uniquement : pas de compte cloud, rien ne fonctionne si la
   tablette ou le broker MQTT est injoignable.
+- L'action « Définir le mot de passe API REST d'une tablette » affiche le
+  mot de passe en clair pendant la saisie - Gladys ne masque pas les champs
+  de type `secret` à l'intérieur du formulaire d'une action (seulement dans
+  le formulaire de Configuration principal), donc cette intégration utilise
+  ici un champ texte simple plutôt qu'un masquage cassé. La valeur reste
+  stockée de façon sécurisée côté serveur et n'est jamais réaffichée
+  ensuite.
 - Le mode broker dédié publie le port du broker sur le réseau local de votre
   serveur Gladys - toute personne sur ce réseau disposant des identifiants
   générés peut s'y connecter. Sans problème sur un réseau domestique, à

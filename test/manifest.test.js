@@ -58,7 +58,11 @@ test('set_tablet_password lets the user pick an already-created device, no IP ty
 
   const passwordField = action.fields.find((f) => f.key === SET_TABLET_PASSWORD_FIELDS.PASSWORD);
   assert.ok(passwordField, 'set_tablet_password must have a "password" field');
-  assert.equal(passwordField.type, 'secret');
+  // "string", not "secret": Gladys does not mask "secret" fields inside an
+  // action's own form (confirmed live - the input stays blank while typing,
+  // unlike the main Configuration form), so "secret" here would only hide
+  // the value from the user typing it, not from anyone else.
+  assert.equal(passwordField.type, 'string');
 });
 
 test('the managed broker sub-container matches the code constants', () => {

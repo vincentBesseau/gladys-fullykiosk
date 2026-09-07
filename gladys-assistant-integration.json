@@ -6,8 +6,8 @@
     "en": "Discover Fully Kiosk tablets over MQTT and control them through their local HTTP API.",
     "fr": "Découvrez vos tablettes Fully Kiosk via MQTT et pilotez-les via leur API HTTP locale."
   },
-  "version": "0.2.8",
-  "docker_image": "ghcr.io/vincentbesseau/gladys-fullykiosk:0.2.8",
+  "version": "0.2.9",
+  "docker_image": "ghcr.io/vincentbesseau/gladys-fullykiosk:0.2.9",
   "gladys_version": ">=4.86.0",
   "cover_image": "https://raw.githubusercontent.com/vincentBesseau/gladys-fullykiosk/main/cover.jpg",
   "categories": ["multimedia"],
@@ -186,10 +186,14 @@
         },
         {
           "key": "password",
-          "type": "secret",
+          "type": "string",
           "label": {
             "en": "REST API password (Fully Kiosk > Remote Administration)",
             "fr": "Mot de passe API REST (Fully Kiosk > Administration à distance)"
+          },
+          "description": {
+            "en": "Shown in clear while typing: Gladys does not mask \"secret\" fields inside an action's own form (unlike the main Configuration form) - the value itself is still stored securely server-side and never re-displayed afterwards.",
+            "fr": "Affiché en clair pendant la saisie : Gladys ne masque pas les champs « secret » à l'intérieur du formulaire d'une action (contrairement au formulaire de Configuration principal) - la valeur reste stockée de façon sécurisée côté serveur et n'est jamais réaffichée ensuite."
           },
           "required": true
         },
