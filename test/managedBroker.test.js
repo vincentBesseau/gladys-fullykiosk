@@ -75,20 +75,28 @@ describe('findManagedBrokerHostPort', () => {
 });
 
 describe('buildCredentialsMessage', () => {
-  test('includes the username, password and host port when available', () => {
+  test('includes the username, password, host port and MQTT topic when available', () => {
     const message = buildCredentialsMessage({
       username: 'fullykiosk',
       password: 'secret123',
       hostPort: 41883,
+      topicPrefix: 'fully',
     });
     assert.match(message.en, /fullykiosk/);
     assert.match(message.en, /secret123/);
     assert.match(message.en, /41883/);
+    assert.match(message.en, /fully\/deviceInfo/);
     assert.match(message.fr, /fullykiosk/);
+    assert.match(message.fr, /fully\/deviceInfo/);
   });
 
   test('explains the broker is not started yet when no host port is known', () => {
-    const message = buildCredentialsMessage({ username: 'x', password: 'y', hostPort: null });
+    const message = buildCredentialsMessage({
+      username: 'x',
+      password: 'y',
+      hostPort: null,
+      topicPrefix: 'fully',
+    });
     assert.match(message.en, /not started yet/);
     assert.match(message.fr, /pas encore démarré/);
   });

@@ -38,8 +38,9 @@ propose trois modes :
   gère son propre broker Mosquitto (un sous-conteneur), avec un identifiant
   et un mot de passe générés automatiquement. Rien d'autre à installer.
   Utilisez l'action **Afficher les identifiants du broker dédié** (dans
-  l'onglet Configuration) pour récupérer l'adresse, l'identifiant et le mot
-  de passe à saisir dans les paramètres MQTT de chaque tablette.
+  l'onglet Configuration) pour récupérer l'adresse, l'identifiant, le mot de
+  passe et le topic « Device Info Topic » à saisir dans les paramètres MQTT
+  de chaque tablette.
 - **Se connecter à un broker existant** : si vous avez déjà un serveur MQTT
   (Mosquitto, EMQX...), renseignez son hôte/port/identifiants dans les
   champs prévus à cet effet.

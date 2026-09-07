@@ -186,20 +186,21 @@ export function findManagedBrokerHostPort(containers) {
 /**
  * Build the multi-language message returned by the "show_broker_credentials"
  * action: what to type into each tablet's Fully Kiosk MQTT settings.
- * @param {object} params - `{ username, password, hostPort }` (hostPort may be null).
+ * @param {object} params - `{ username, password, hostPort, topicPrefix }` (hostPort may be null).
  * @returns {{en: string, fr: string}} The message.
  * @example
- * buildCredentialsMessage({ username: 'fullykiosk', password: 'xyz', hostPort: 41883 });
+ * buildCredentialsMessage({ username: 'fullykiosk', password: 'xyz', hostPort: 41883, topicPrefix: 'fully' });
  */
-export function buildCredentialsMessage({ username, password, hostPort }) {
+export function buildCredentialsMessage({ username, password, hostPort, topicPrefix }) {
   if (!hostPort) {
     return {
       en: 'The managed broker has not started yet - save the configuration with "Run a dedicated broker" selected, then try this action again in a few seconds.',
       fr: "Le broker dédié n'a pas encore démarré - enregistrez la configuration avec « Lancer un broker dédié » sélectionné, puis relancez cette action dans quelques secondes.",
     };
   }
+  const topic = `${topicPrefix}/deviceInfo/$deviceId`;
   return {
-    en: `In each tablet's Fully Kiosk MQTT settings, use: broker address "<your Gladys server's LAN IP>:${hostPort}", username "${username}", password "${password}".`,
-    fr: `Dans les paramètres MQTT de chaque tablette Fully Kiosk, utilisez : adresse du broker « <IP LAN de votre serveur Gladys>:${hostPort} », identifiant « ${username} », mot de passe « ${password} ».`,
+    en: `In each tablet's Fully Kiosk MQTT settings, use: broker address "<your Gladys server's LAN IP>:${hostPort}", username "${username}", password "${password}", Device Info Topic "${topic}" (anything starting with "${topicPrefix}/" works).`,
+    fr: `Dans les paramètres MQTT de chaque tablette Fully Kiosk, utilisez : adresse du broker « <IP LAN de votre serveur Gladys>:${hostPort} », identifiant « ${username} », mot de passe « ${password} », topic « Device Info Topic » « ${topic} » (n'importe quoi commençant par « ${topicPrefix}/ » convient).`,
   };
 }

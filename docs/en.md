@@ -34,7 +34,8 @@ Only relevant if you use MQTT discovery, which requires a Fully Kiosk PLUS licen
   manages its own Mosquitto broker (a sub-container), with an automatically
   generated username and password - nothing else to install. Use the **Show
   managed broker credentials** action (in the Configuration tab) to get the
-  address, username and password to enter in each tablet's MQTT settings.
+  address, username, password and Device Info Topic to enter in each
+  tablet's MQTT settings.
 - **Connect to an existing broker**: if you already run an MQTT server
   (Mosquitto, EMQX...), fill in its host/port/credentials in the fields
   provided.

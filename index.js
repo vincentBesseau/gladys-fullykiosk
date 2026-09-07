@@ -327,7 +327,8 @@ gladys.onAction('show_broker_credentials', async () => {
   const { username, password } = await ensureManagedBrokerCredentials(gladys);
   const containers = await gladys.getContainers().catch(() => []);
   const hostPort = findManagedBrokerHostPort(containers);
-  return buildCredentialsMessage({ username, password, hostPort });
+  const topicPrefix = config[CONFIG_SCHEMA_KEYS.MQTT_TOPIC_PREFIX] || DEFAULT_MQTT_TOPIC_PREFIX;
+  return buildCredentialsMessage({ username, password, hostPort, topicPrefix });
 });
 
 // --- Manifest action: set one tablet's REST API password ---------------------
