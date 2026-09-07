@@ -6,8 +6,8 @@
     "en": "Discover Fully Kiosk tablets over MQTT or by IP, and control them through their local HTTP API.",
     "fr": "Découvrez vos tablettes Fully Kiosk via MQTT ou par IP, et pilotez-les via leur API HTTP locale."
   },
-  "version": "0.3.0",
-  "docker_image": "ghcr.io/vincentbesseau/gladys-fullykiosk:0.3.0",
+  "version": "0.3.1",
+  "docker_image": "ghcr.io/vincentbesseau/gladys-fullykiosk:0.3.1",
   "gladys_version": ">=4.86.0",
   "cover_image": "https://raw.githubusercontent.com/vincentBesseau/gladys-fullykiosk/main/cover.jpg",
   "categories": ["multimedia"],
@@ -51,8 +51,8 @@
         "fr": "Broker MQTT"
       },
       "description": {
-        "en": "Only relevant if you use MQTT discovery (requires a Fully Kiosk PLUS license - otherwise use the \"Add a tablet by IP\" action instead, no broker needed). \"Run a dedicated broker\": this integration starts and manages its own Mosquitto broker - nothing else to install, generated credentials shown by the \"Show managed broker credentials\" action below. \"Connect to an existing broker\": use the MQTT server you already run, with the fields further down.",
-        "fr": "Pertinent uniquement si vous utilisez la découverte MQTT (nécessite une licence Fully Kiosk PLUS - sinon utilisez plutôt l'action « Ajouter une tablette par IP », sans broker). « Lancer un broker dédié » : cette intégration démarre et gère son propre broker Mosquitto - rien d'autre à installer, identifiants générés affichés par l'action « Afficher les identifiants du broker dédié » ci-dessous. « Se connecter à un broker existant » : utilisez le serveur MQTT que vous avez déjà, avec les champs plus bas."
+        "en": "Only relevant if you use MQTT discovery (requires a Fully Kiosk PLUS license). If you only add tablets via the \"Add a tablet by IP\" action, pick \"Disable MQTT\" - no broker is started or contacted. \"Run a dedicated broker\": this integration starts and manages its own Mosquitto broker - nothing else to install, generated credentials shown by the \"Show managed broker credentials\" action below. \"Connect to an existing broker\": use the MQTT server you already run, with the fields further down.",
+        "fr": "Pertinent uniquement si vous utilisez la découverte MQTT (nécessite une licence Fully Kiosk PLUS). Si vous n'ajoutez vos tablettes que via l'action « Ajouter une tablette par IP », choisissez « Désactiver MQTT » - aucun broker n'est démarré ni contacté. « Lancer un broker dédié » : cette intégration démarre et gère son propre broker Mosquitto - rien d'autre à installer, identifiants générés affichés par l'action « Afficher les identifiants du broker dédié » ci-dessous. « Se connecter à un broker existant » : utilisez le serveur MQTT que vous avez déjà, avec les champs plus bas."
       },
       "options": [
         {
@@ -67,6 +67,13 @@
           "label": {
             "en": "Connect to an existing broker",
             "fr": "Se connecter à un broker existant"
+          }
+        },
+        {
+          "value": "disabled",
+          "label": {
+            "en": "Disable MQTT (\"Add a tablet by IP\" only)",
+            "fr": "Désactiver MQTT (« Ajouter une tablette par IP » uniquement)"
           }
         }
       ],

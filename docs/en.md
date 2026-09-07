@@ -28,7 +28,7 @@ local HTTP REST API.
 
 ## MQTT broker: dedicated or existing
 
-Only relevant if you use MQTT discovery, which requires a Fully Kiosk PLUS license (see above). The **MQTT broker** configuration field offers two modes:
+Only relevant if you use MQTT discovery, which requires a Fully Kiosk PLUS license (see above). The **MQTT broker** configuration field offers three modes:
 
 - **Run a dedicated broker (recommended)**: this integration starts and
   manages its own Mosquitto broker (a sub-container), with an automatically
@@ -38,6 +38,10 @@ Only relevant if you use MQTT discovery, which requires a Fully Kiosk PLUS licen
 - **Connect to an existing broker**: if you already run an MQTT server
   (Mosquitto, EMQX...), fill in its host/port/credentials in the fields
   provided.
+- **Disable MQTT**: if you only add tablets via the **Add a tablet by IP**
+  action, this mode stops (or never starts) the Mosquitto sub-container and
+  never attempts an MQTT connection - no point running a broker you don't
+  use.
 
 ## Configuration
 
@@ -64,10 +68,12 @@ Only relevant if you use MQTT discovery, which requires a Fully Kiosk PLUS licen
 
 ### Without a PLUS license (add by IP)
 
-1. In each tablet's Fully Kiosk app, enable **Remote Administration**
+1. Set **MQTT broker** to **Disable MQTT** (unless you plan to also add
+   other, PLUS-licensed tablets later).
+2. In each tablet's Fully Kiosk app, enable **Remote Administration**
    (Settings > Other Settings > Remote Administration) and note its **Remote
    Admin Password** and IP address.
-2. Run the **Add a tablet by IP** action, enter the IP address, the password
+3. Run the **Add a tablet by IP** action, enter the IP address, the password
    (and a custom REST port, if it isn't the default 2323). The tablet is
    added immediately and its password saved in the same step - no need for
    MQTT or for the "Set a tablet's REST API password" action. Repeat for each

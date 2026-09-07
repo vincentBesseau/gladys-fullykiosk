@@ -94,11 +94,11 @@ test('the managed broker sub-container matches the code constants', () => {
   assert.ok(mqttPort, 'the mosquitto sub-container must publish port 1883');
 });
 
-test('the broker_mode field declares "managed" and "external" options', () => {
+test('the broker_mode field declares "managed", "external" and "disabled" options', () => {
   const field = manifest.config_schema.find((f) => f.key === CONFIG_SCHEMA_KEYS.BROKER_MODE);
   assert.ok(field, 'manifest must declare a broker_mode field');
   const values = field.options.map((o) => o.value);
-  assert.deepEqual(values.sort(), ['external', 'managed']);
+  assert.deepEqual(values.sort(), ['disabled', 'external', 'managed']);
   assert.equal(field.default, 'managed');
 });
 

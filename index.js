@@ -146,6 +146,14 @@ function disconnectMqtt() {
 async function resolveBrokerConnection(config) {
   const mode = config[CONFIG_SCHEMA_KEYS.BROKER_MODE] || BROKER_MODE.MANAGED;
 
+  if (mode === BROKER_MODE.DISABLED) {
+    await gladys.stopContainer(MANAGED_BROKER.CONTAINER_NAME).catch(() => {});
+    // Force the next switch back to managed mode to call startContainer
+    // again, even with unchanged credentials - it was just stopped.
+    lastManagedBrokerCredentials = undefined;
+    return null;
+  }
+
   if (mode === BROKER_MODE.EXTERNAL) {
     await gladys.stopContainer(MANAGED_BROKER.CONTAINER_NAME).catch(() => {});
     // Force the next switch back to managed mode to call startContainer
@@ -204,7 +212,13 @@ async function connectMqttFromConfig() {
   }
 
   if (!connection) {
-    logger.info('Fully Kiosk: no MQTT broker configured yet, waiting for configuration.');
+    const mode = config[CONFIG_SCHEMA_KEYS.BROKER_MODE] || BROKER_MODE.MANAGED;
+    if (mode === BROKER_MODE.DISABLED) {
+      logger.info('Fully Kiosk: MQTT disabled, only tablets added by IP will be used.');
+      await gladys.setConnectionStatus(true).catch(() => {});
+    } else {
+      logger.info('Fully Kiosk: no MQTT broker configured yet, waiting for configuration.');
+    }
     return;
   }
 
@@ -306,8 +320,8 @@ gladys.onAction('show_broker_credentials', async () => {
   const config = (await gladys.getConfig()) || {};
   if ((config[CONFIG_SCHEMA_KEYS.BROKER_MODE] || BROKER_MODE.MANAGED) !== BROKER_MODE.MANAGED) {
     return {
-      en: 'The managed broker is not enabled (Broker mode is set to "Connect to an existing broker").',
-      fr: "Le broker dédié n'est pas activé (le mode broker est réglé sur « Se connecter à un broker existant »).",
+      en: 'The managed broker is not enabled (the "MQTT broker" mode is not set to "Run a dedicated broker").',
+      fr: "Le broker dédié n'est pas activé (le mode « Broker MQTT » n'est pas réglé sur « Lancer un broker dédié »).",
     };
   }
   const { username, password } = await ensureManagedBrokerCredentials(gladys);

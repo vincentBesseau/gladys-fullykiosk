@@ -32,7 +32,7 @@ reboot... - via leur API REST HTTP locale.
 
 Pertinent uniquement si vous utilisez la découverte MQTT (licence Fully Kiosk
 PLUS requise - voir ci-dessus). Le champ **Broker MQTT** de la configuration
-propose deux modes :
+propose trois modes :
 
 - **Lancer un broker dédié (recommandé)** : cette intégration démarre et
   gère son propre broker Mosquitto (un sous-conteneur), avec un identifiant
@@ -43,6 +43,10 @@ propose deux modes :
 - **Se connecter à un broker existant** : si vous avez déjà un serveur MQTT
   (Mosquitto, EMQX...), renseignez son hôte/port/identifiants dans les
   champs prévus à cet effet.
+- **Désactiver MQTT** : si vous n'ajoutez vos tablettes que via l'action
+  **Ajouter une tablette par IP**, ce mode arrête (ou ne démarre jamais) le
+  sous-conteneur Mosquitto et ne tente aucune connexion MQTT - inutile de
+  faire tourner un broker dont vous ne vous servez pas.
 
 ## Configuration
 
@@ -72,11 +76,13 @@ propose deux modes :
 
 ### Sans licence PLUS (ajout par IP)
 
-1. Dans l'application Fully Kiosk de chaque tablette, activez
+1. Réglez **Broker MQTT** sur **Désactiver MQTT** (sauf si vous comptez
+   ajouter d'autres tablettes en PLUS plus tard).
+2. Dans l'application Fully Kiosk de chaque tablette, activez
    **l'administration à distance** (Paramètres > Autres paramètres >
    Administration à distance) et notez son **mot de passe d'administration à
    distance** et son adresse IP.
-2. Lancez l'action **Ajouter une tablette par IP**, renseignez l'adresse IP,
+3. Lancez l'action **Ajouter une tablette par IP**, renseignez l'adresse IP,
    le mot de passe (et un port REST personnalisé si ce n'est pas 2323 par
    défaut). La tablette est ajoutée immédiatement et son mot de passe
    enregistré en une seule étape - inutile de passer par MQTT ni par l'action

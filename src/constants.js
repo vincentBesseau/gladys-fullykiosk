@@ -67,6 +67,10 @@ export const BROKER_MODE = {
   // The user already has an MQTT broker and provides its connection details
   // (mqtt_host/mqtt_port/...).
   EXTERNAL: 'external',
+  // No MQTT at all - for a user who only adds tablets via the
+  // "Add a tablet by IP" action. Stops (or never starts) the managed broker
+  // sub-container and skips connecting to any broker.
+  DISABLED: 'disabled',
 };
 
 // The managed broker sub-container: name (also its DNS alias on the
