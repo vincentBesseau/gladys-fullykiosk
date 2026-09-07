@@ -8,12 +8,16 @@ local HTTP REST API.
 
 ## How it works
 
-- **Discovery: MQTT.** Fully Kiosk can periodically publish a JSON
-  "deviceInfo" report to an MQTT broker (Settings > Other Settings > MQTT
-  Settings, in the Fully Kiosk app). This integration connects to that same
-  broker and subscribes to everything under a topic prefix (`fully/#` by
-  default): any JSON message that looks like a deviceInfo report (it carries
-  a device identifier) is picked up, and the tablet appears in Gladys.
+- **Discovery: MQTT, or manual add by IP.** Fully Kiosk can periodically
+  publish a JSON "deviceInfo" report to an MQTT broker (Settings > Other
+  Settings > MQTT Settings, in the Fully Kiosk app) - **but that MQTT feature
+  requires a Fully Kiosk PLUS license**, it isn't in the free edition. This
+  integration connects to the configured broker and subscribes to everything
+  under a topic prefix (`fully/#` by default): any JSON message that looks
+  like a deviceInfo report (it carries a device identifier) is picked up, and
+  the tablet appears in Gladys. **Without a PLUS license**, use the **Add a
+  tablet by IP** action instead: it queries the tablet's REST API directly
+  (which is free) to add it, no MQTT involved.
 - **Control: local HTTP.** Every command (screen on/off, load URL, restart
   app...) is sent straight to the tablet's own REST API
   (`http://<tablet-ip>:2323/?cmd=...`), which Fully Kiosk protects with a
@@ -24,7 +28,7 @@ local HTTP REST API.
 
 ## MQTT broker: dedicated or existing
 
-The **MQTT broker** configuration field offers two modes:
+Only relevant if you use MQTT discovery, which requires a Fully Kiosk PLUS license (see above). The **MQTT broker** configuration field offers two modes:
 
 - **Run a dedicated broker (recommended)**: this integration starts and
   manages its own Mosquitto broker (a sub-container), with an automatically
@@ -36,6 +40,8 @@ The **MQTT broker** configuration field offers two modes:
   provided.
 
 ## Configuration
+
+### With a Fully Kiosk PLUS license (MQTT discovery)
 
 1. Pick a broker mode (above). With the dedicated mode, save the
    configuration once first so the broker starts and its credentials get
@@ -56,6 +62,20 @@ The **MQTT broker** configuration field offers two modes:
    Remote Admin Password (and a custom REST port, if it isn't the default
    2323). Repeat for each tablet.
 
+### Without a PLUS license (add by IP)
+
+1. In each tablet's Fully Kiosk app, enable **Remote Administration**
+   (Settings > Other Settings > Remote Administration) and note its **Remote
+   Admin Password** and IP address.
+2. Run the **Add a tablet by IP** action, enter the IP address, the password
+   (and a custom REST port, if it isn't the default 2323). The tablet is
+   added immediately and its password saved in the same step - no need for
+   MQTT or for the "Set a tablet's REST API password" action. Repeat for each
+   tablet.
+
+This path doesn't depend on any MQTT broker: neither the **MQTT broker**
+configuration nor the topic prefix affect tablets added this way.
+
 ## Why an action instead of a config field
 
 Gladys external integrations only expose one flat, integration-wide
@@ -66,6 +86,12 @@ dropdown pre-populated with the integration's already-created devices - the
 to type or copy an IP address by hand. The password is stored keyed by the
 tablet's stable Gladys device id, not its IP, so it survives the tablet's
 next DHCP lease change unlike an IP-keyed list would.
+
+For the same reason, there's also no conditional config field that would
+only appear for one of the two discovery modes (MQTT or IP): Gladys'
+configuration form is a flat list, with no "only show this field if..."
+logic. That's why adding a tablet by IP is its own action too, rather than
+an extra field in the main configuration form.
 
 ## Available actions per tablet
 
@@ -86,14 +112,17 @@ next DHCP lease change unlike an IP-keyed list would.
 
 ## Limitations
 
-- Local network only: no cloud account, nothing works if the tablet or the
-  MQTT broker is unreachable.
-- The "Set a tablet's REST API password" action shows the password in clear
-  while you type it - Gladys does not mask `secret`-type fields inside an
-  action's own form (only in the main Configuration form), so this
-  integration uses a plain field there instead of a broken masked one. The
-  value is still stored securely server-side and never displayed again
-  afterwards.
+- Local network only: no cloud account, nothing works if the tablet or (in
+  MQTT mode) the MQTT broker is unreachable.
+- MQTT reporting is a Fully Kiosk **PLUS**-licensed feature - not in the free
+  edition. Without PLUS, use the **Add a tablet by IP** action instead: it
+  only relies on Fully Kiosk's REST API, available in the free edition.
+- The "Set a tablet's REST API password" and "Add a tablet by IP" actions
+  show the password in clear while you type it - Gladys does not mask
+  `secret`-type fields inside an action's own form (only in the main
+  Configuration form), so this integration uses a plain field there instead
+  of a broken masked one. The value is still stored securely server-side and
+  never displayed again afterwards.
 - Managed broker mode publishes the broker's port on your Gladys server's
   LAN - anyone on that network who has the generated credentials can connect
   to it. Fine for a home LAN, worth knowing on a shared/untrusted network.

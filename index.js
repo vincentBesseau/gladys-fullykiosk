@@ -29,10 +29,12 @@ import { setTabletCredential } from './src/tabletCredentials.js';
 import {
   CONFIG_SCHEMA_KEYS,
   SET_TABLET_PASSWORD_FIELDS,
+  ADD_TABLET_BY_IP_FIELDS,
   BROKER_MODE,
   MANAGED_BROKER,
   DEFAULT_MQTT_PORT,
   DEFAULT_MQTT_TOPIC_PREFIX,
+  DEFAULT_HTTP_PORT,
   REPUBLISH_DEBOUNCE_MS,
   HTTP_POLL_INTERVAL_MS,
 } from './src/constants.js';
@@ -333,6 +335,62 @@ gladys.onAction('set_tablet_password', async (fields) => {
   return {
     en: 'Password saved for this tablet.',
     fr: 'Mot de passe enregistré pour cette tablette.',
+  };
+});
+
+// --- Manifest action: add a tablet by IP, without waiting for an MQTT report -
+// The alternative discovery path for a tablet running Fully Kiosk's free
+// edition (deviceInfo-over-MQTT is a PLUS-licensed feature - see docs). Talks
+// straight to the tablet's REST API, which also validates the IP/password.
+gladys.onAction('add_tablet_by_ip', async (fields) => {
+  const ip = fields[ADD_TABLET_BY_IP_FIELDS.IP];
+  const password = fields[ADD_TABLET_BY_IP_FIELDS.PASSWORD];
+  const port = fields[ADD_TABLET_BY_IP_FIELDS.PORT];
+  if (!ip || !password) {
+    return {
+      en: "Enter the tablet's IP address and its REST API password.",
+      fr: "Renseignez l'adresse IP de la tablette et son mot de passe API REST.",
+    };
+  }
+
+  const config = (await gladys.getConfig()) || {};
+  const target = {
+    ip,
+    port: port ? Number(port) : DEFAULT_HTTP_PORT,
+    password,
+    useHttps: !!config[CONFIG_SCHEMA_KEYS.HTTP_USE_HTTPS],
+  };
+
+  let raw;
+  try {
+    raw = await getDeviceInfo(target);
+  } catch (e) {
+    logger.error(`Action add_tablet_by_ip -> ${ip} failed: ${e.message}`);
+    return {
+      en: `Could not reach the tablet at ${ip}: ${e.message}. Check the IP, port and REST API password.`,
+      fr: `Impossible de joindre la tablette à l'adresse ${ip} : ${e.message}. Vérifiez l'IP, le port et le mot de passe API REST.`,
+    };
+  }
+  const deviceInfo = normalizeDeviceInfo(raw);
+  if (!deviceInfo) {
+    return {
+      en: `The tablet at ${ip} answered, but not with a recognizable Fully Kiosk deviceInfo response.`,
+      fr: `La tablette à l'adresse ${ip} a répondu, mais pas avec une réponse deviceInfo Fully Kiosk reconnaissable.`,
+    };
+  }
+
+  knownDevices.set(deviceInfo.deviceId, deviceInfo);
+  const device = convertToGladysDevice(gladys, deviceInfo);
+  await setTabletCredential(gladys, device.external_id, {
+    password,
+    port: port ? Number(port) : undefined,
+  });
+  await publishAllDiscovered();
+
+  logger.info(`Action add_tablet_by_ip -> added "${device.name}" (${ip})`);
+  return {
+    en: `"${device.name}" added - its REST API password was saved too.`,
+    fr: `« ${device.name} » ajoutée - son mot de passe API REST a aussi été enregistré.`,
   };
 });
 

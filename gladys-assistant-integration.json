@@ -3,11 +3,11 @@
   "type": "device",
   "name": "Fully Kiosk Browser",
   "description": {
-    "en": "Discover Fully Kiosk tablets over MQTT and control them through their local HTTP API.",
-    "fr": "Découvrez vos tablettes Fully Kiosk via MQTT et pilotez-les via leur API HTTP locale."
+    "en": "Discover Fully Kiosk tablets over MQTT or by IP, and control them through their local HTTP API.",
+    "fr": "Découvrez vos tablettes Fully Kiosk via MQTT ou par IP, et pilotez-les via leur API HTTP locale."
   },
-  "version": "0.2.9",
-  "docker_image": "ghcr.io/vincentbesseau/gladys-fullykiosk:0.2.9",
+  "version": "0.3.0",
+  "docker_image": "ghcr.io/vincentbesseau/gladys-fullykiosk:0.3.0",
   "gladys_version": ">=4.86.0",
   "cover_image": "https://raw.githubusercontent.com/vincentBesseau/gladys-fullykiosk/main/cover.jpg",
   "categories": ["multimedia"],
@@ -39,8 +39,8 @@
         "fr": "Fully Kiosk Browser, via MQTT + HTTP local"
       },
       "description": {
-        "en": "This integration discovers your Fully Kiosk Browser tablets from MQTT status messages, then controls them through their local REST API. Fully Kiosk's REST API is protected by a password set per tablet (Fully Kiosk settings > Remote Administration) - once a tablet is discovered and added below, use the \"Set a tablet's REST API password\" action to register it.",
-        "fr": "Cette intégration découvre vos tablettes Fully Kiosk Browser à partir de messages de statut MQTT, puis les pilote via leur API REST locale. L'API REST de Fully Kiosk est protégée par un mot de passe défini par tablette (paramètres Fully Kiosk > Administration à distance) - une fois une tablette découverte et ajoutée ci-dessous, utilisez l'action « Définir le mot de passe API REST d'une tablette » pour l'enregistrer."
+        "en": "This integration discovers your Fully Kiosk Browser tablets from MQTT status messages, then controls them through their local REST API. MQTT reporting requires a Fully Kiosk PLUS license - on the free edition, use the \"Add a tablet by IP\" action instead, no MQTT needed. Fully Kiosk's REST API (used to control tablets either way) is protected by a password set per tablet (Fully Kiosk settings > Remote Administration).",
+        "fr": "Cette intégration découvre vos tablettes Fully Kiosk Browser à partir de messages de statut MQTT, puis les pilote via leur API REST locale. Le reporting MQTT nécessite une licence Fully Kiosk PLUS - avec l'édition gratuite, utilisez plutôt l'action « Ajouter une tablette par IP », sans MQTT. L'API REST de Fully Kiosk (utilisée pour piloter les tablettes dans les deux cas) est protégée par un mot de passe défini par tablette (paramètres Fully Kiosk > Administration à distance)."
       }
     },
     {
@@ -51,8 +51,8 @@
         "fr": "Broker MQTT"
       },
       "description": {
-        "en": "\"Run a dedicated broker\": this integration starts and manages its own Mosquitto broker - nothing else to install, generated credentials shown by the \"Show managed broker credentials\" action below. \"Connect to an existing broker\": use the MQTT server you already run, with the fields further down.",
-        "fr": "« Lancer un broker dédié » : cette intégration démarre et gère son propre broker Mosquitto - rien d'autre à installer, identifiants générés affichés par l'action « Afficher les identifiants du broker dédié » ci-dessous. « Se connecter à un broker existant » : utilisez le serveur MQTT que vous avez déjà, avec les champs plus bas."
+        "en": "Only relevant if you use MQTT discovery (requires a Fully Kiosk PLUS license - otherwise use the \"Add a tablet by IP\" action instead, no broker needed). \"Run a dedicated broker\": this integration starts and manages its own Mosquitto broker - nothing else to install, generated credentials shown by the \"Show managed broker credentials\" action below. \"Connect to an existing broker\": use the MQTT server you already run, with the fields further down.",
+        "fr": "Pertinent uniquement si vous utilisez la découverte MQTT (nécessite une licence Fully Kiosk PLUS - sinon utilisez plutôt l'action « Ajouter une tablette par IP », sans broker). « Lancer un broker dédié » : cette intégration démarre et gère son propre broker Mosquitto - rien d'autre à installer, identifiants générés affichés par l'action « Afficher les identifiants du broker dédié » ci-dessous. « Se connecter à un broker existant » : utilisez le serveur MQTT que vous avez déjà, avec les champs plus bas."
       },
       "options": [
         {
@@ -161,6 +161,54 @@
         "fr": "Afficher les identifiants du broker dédié"
       },
       "timeout_seconds": 10
+    },
+    {
+      "key": "add_tablet_by_ip",
+      "label": {
+        "en": "Add a tablet by IP (no MQTT / free edition)",
+        "fr": "Ajouter une tablette par IP (sans MQTT / édition gratuite)"
+      },
+      "description": {
+        "en": "For a tablet running Fully Kiosk's free edition, which cannot report over MQTT (that needs a PLUS license): queries the tablet's REST API directly to add it, and saves its REST API password at the same time - no separate \"Set a tablet's REST API password\" step needed.",
+        "fr": "Pour une tablette sous l'édition gratuite de Fully Kiosk, qui ne peut pas faire de rapport MQTT (ça nécessite une licence PLUS) : interroge directement l'API REST de la tablette pour l'ajouter, et enregistre son mot de passe API REST en même temps - pas besoin de l'étape séparée « Définir le mot de passe API REST d'une tablette »."
+      },
+      "timeout_seconds": 15,
+      "fields": [
+        {
+          "key": "ip",
+          "type": "string",
+          "label": {
+            "en": "Tablet IP address",
+            "fr": "Adresse IP de la tablette"
+          },
+          "placeholder": {
+            "en": "192.168.1.35",
+            "fr": "192.168.1.35"
+          },
+          "required": true
+        },
+        {
+          "key": "password",
+          "type": "string",
+          "label": {
+            "en": "REST API password (Fully Kiosk > Remote Administration)",
+            "fr": "Mot de passe API REST (Fully Kiosk > Administration à distance)"
+          },
+          "description": {
+            "en": "Shown in clear while typing: Gladys does not mask \"secret\" fields inside an action's own form (unlike the main Configuration form) - the value itself is still stored securely server-side and never re-displayed afterwards.",
+            "fr": "Affiché en clair pendant la saisie : Gladys ne masque pas les champs « secret » à l'intérieur du formulaire d'une action (contrairement au formulaire de Configuration principal) - la valeur reste stockée de façon sécurisée côté serveur et n'est jamais réaffichée ensuite."
+          },
+          "required": true
+        },
+        {
+          "key": "port",
+          "type": "number",
+          "label": {
+            "en": "REST port (leave empty for the default, 2323)",
+            "fr": "Port REST (laisser vide pour la valeur par défaut, 2323)"
+          }
+        }
+      ]
     },
     {
       "key": "set_tablet_password",

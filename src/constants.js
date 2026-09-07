@@ -36,6 +36,16 @@ export const SET_TABLET_PASSWORD_FIELDS = {
   PORT: 'port',
 };
 
+// Fields of the "add_tablet_by_ip" manifest action - the alternative to MQTT
+// discovery for a tablet running Fully Kiosk's free (non-PLUS) edition, which
+// cannot publish MQTT deviceInfo reports at all. Queries the tablet's REST
+// API directly (deviceInfo command), so it also doubles as a password check.
+export const ADD_TABLET_BY_IP_FIELDS = {
+  IP: 'ip',
+  PASSWORD: 'password',
+  PORT: 'port',
+};
+
 // Config keys stored OUTSIDE the config_schema (never shown in the standard
 // form) - the external equivalent of the core's gladys.variable.
 export const CONFIG_KEYS = {

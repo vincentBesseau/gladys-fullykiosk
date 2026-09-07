@@ -8,6 +8,7 @@ import { readFile } from 'node:fs/promises';
 import {
   CONFIG_SCHEMA_KEYS,
   SET_TABLET_PASSWORD_FIELDS,
+  ADD_TABLET_BY_IP_FIELDS,
   DEFAULT_MQTT_TOPIC_PREFIX,
 } from '../src/constants.js';
 
@@ -41,7 +42,12 @@ test('the manifest topic prefix default matches the code default', () => {
 
 test('every manifest action has a registered handler', () => {
   // Kept in sync by hand with index.js's gladys.onAction(...) calls.
-  const handled = new Set(['scan_now', 'show_broker_credentials', 'set_tablet_password']);
+  const handled = new Set([
+    'scan_now',
+    'show_broker_credentials',
+    'set_tablet_password',
+    'add_tablet_by_ip',
+  ]);
   for (const action of manifest.actions ?? []) {
     assert.ok(handled.has(action.key), `manifest action "${action.key}" has no handler`);
   }
@@ -63,6 +69,21 @@ test('set_tablet_password lets the user pick an already-created device, no IP ty
   // unlike the main Configuration form), so "secret" here would only hide
   // the value from the user typing it, not from anyone else.
   assert.equal(passwordField.type, 'string');
+});
+
+test('add_tablet_by_ip lets a free-edition tablet be added without MQTT', () => {
+  const action = manifest.actions.find((a) => a.key === 'add_tablet_by_ip');
+  assert.ok(action, 'manifest must declare an "add_tablet_by_ip" action');
+
+  const ipField = action.fields.find((f) => f.key === ADD_TABLET_BY_IP_FIELDS.IP);
+  assert.ok(ipField, 'add_tablet_by_ip must have an "ip" field');
+  assert.equal(ipField.type, 'string');
+  assert.equal(ipField.required, true);
+
+  const passwordField = action.fields.find((f) => f.key === ADD_TABLET_BY_IP_FIELDS.PASSWORD);
+  assert.ok(passwordField, 'add_tablet_by_ip must have a "password" field');
+  assert.equal(passwordField.type, 'string');
+  assert.equal(passwordField.required, true);
 });
 
 test('the managed broker sub-container matches the code constants', () => {
