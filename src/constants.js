@@ -72,6 +72,13 @@ export const DEFAULT_MQTT_PORT = 1883;
 export const DEFAULT_MQTT_TOPIC_PREFIX = 'fully';
 export const DEFAULT_HTTP_PORT = 2323;
 
+// How often Gladys calls onPoll (HTTP fallback, see index.js) for each
+// tablet. Fully Kiosk's own periodic MQTT report does not necessarily carry
+// every field (e.g. "current page" was observed missing from it, present in
+// the full HTTP deviceInfo response) - polling is this integration's only
+// way to keep those fields fresh, not just a startup fallback.
+export const POLL_FREQUENCY_IN_MS = 60 * 1000;
+
 // Fully Kiosk's own REST server can be slow to answer while the tablet is
 // asleep/under load - long enough to cover that, short enough to not hang a
 // Gladys scene forever on an unreachable tablet.

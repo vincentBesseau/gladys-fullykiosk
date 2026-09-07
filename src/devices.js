@@ -14,7 +14,13 @@ import {
   DEVICE_FEATURE_UNITS,
 } from '@gladysassistant/integration-sdk';
 import { getTabletCredential } from './tabletCredentials.js';
-import { DEVICE_TYPE, CONFIG_SCHEMA_KEYS, DEFAULT_HTTP_PORT, FULLY_CMD } from './constants.js';
+import {
+  DEVICE_TYPE,
+  CONFIG_SCHEMA_KEYS,
+  DEFAULT_HTTP_PORT,
+  FULLY_CMD,
+  POLL_FREQUENCY_IN_MS,
+} from './constants.js';
 
 /**
  * Read the first present key among several candidates - Fully Kiosk's exact
@@ -254,6 +260,8 @@ export function convertToGladysDevice(gladys, deviceInfo) {
     model: 'Fully Kiosk Browser',
     params,
     features,
+    should_poll: true,
+    poll_frequency: POLL_FREQUENCY_IN_MS,
   };
 }
 

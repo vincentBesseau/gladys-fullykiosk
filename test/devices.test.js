@@ -93,6 +93,12 @@ describe('convertToGladysDevice', () => {
     assert.equal(device.name, 'Fully Kiosk abc123');
   });
 
+  test('enables polling (MQTT alone does not keep every field fresh)', () => {
+    const device = convertToGladysDevice(gladys, normalizeDeviceInfo({ deviceId: 'abc123' }));
+    assert.equal(device.should_poll, true);
+    assert.ok(device.poll_frequency > 0);
+  });
+
   test('every feature declares a non-null min/max (Gladys rejects the device otherwise)', () => {
     const device = convertToGladysDevice(
       gladys,
