@@ -145,6 +145,12 @@ an extra field in the main configuration form.
   and are not formally versioned; if a field (e.g. current page) never
   populates, check the raw payload (logged at debug level,
   `LOG_LEVEL=debug`) against your Fully Kiosk version.
+- A tablet added right after its MQTT connection may show fewer features than
+  expected in the Discovery tab (no Battery/Charging, no Technical parameters
+  section) if its very first report didn't carry that information yet
+  (Wi-Fi/battery not reported yet). Unlike `should_poll`, this isn't frozen at
+  creation time: just run **Refresh the tablet list** again once a fuller
+  report has come in - no need to delete and re-add the device.
 - "Reboot device" and some settings commands require the tablet to be a
   Device Owner (or rooted) - otherwise Fully Kiosk rejects the command,
   independently of this integration.

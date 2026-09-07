@@ -164,6 +164,13 @@ dans le formulaire principal.
   champ (par ex. la page en cours) ne se remplit jamais, vérifiez la charge
   utile brute (journalisée en niveau debug, `LOG_LEVEL=debug`) au regard de
   votre version de Fully Kiosk.
+- Une tablette ajoutée juste après sa connexion MQTT peut afficher moins de
+  fonctionnalités que prévu dans l'onglet Découverte (pas de Batterie/En
+  charge, pas de section Paramètres techniques) si son tout premier rapport
+  ne portait pas encore ces informations (Wi-Fi/batterie pas encore
+  remontés). Ce n'est pas figé comme le `should_poll` : relancez simplement
+  **Rafraîchir la liste des tablettes** une fois qu'un rapport plus complet
+  est arrivé, pas besoin de supprimer/recréer l'appareil.
 - « Redémarrer l'appareil » et certaines commandes de paramètres nécessitent
   que la tablette soit Device Owner (ou rootée) - sinon Fully Kiosk rejette
   la commande, indépendamment de cette intégration.
