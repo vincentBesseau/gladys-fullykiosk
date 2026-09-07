@@ -8,7 +8,15 @@ import {
   resolveHttpTarget,
   setDeviceValue,
   featureKeyFromExternalId,
+  shouldPoll,
 } from '../src/devices.js';
+import { GLADYS_POLL_FREQUENCY_IN_MS } from '../src/constants.js';
+
+// Gladys' device.poll_frequency must be one of these exact values
+// (server/utils/constants.js's DEVICE_POLL_FREQUENCIES) - anything else is
+// rejected with "invalid poll frequency" (confirmed live), so this is
+// hardcoded here rather than imported from a package we don't depend on.
+const GLADYS_VALID_POLL_FREQUENCIES_MS = [60000, 30000, 15000, 10000, 2000, 1000];
 
 describe('normalizeDeviceInfo', () => {
   test('reads the standard field names', () => {
@@ -93,10 +101,14 @@ describe('convertToGladysDevice', () => {
     assert.equal(device.name, 'Fully Kiosk abc123');
   });
 
-  test('enables polling (MQTT alone does not keep every field fresh)', () => {
+  test('enables polling at a frequency Gladys actually accepts', () => {
     const device = convertToGladysDevice(gladys, normalizeDeviceInfo({ deviceId: 'abc123' }));
     assert.equal(device.should_poll, true);
-    assert.ok(device.poll_frequency > 0);
+    assert.ok(
+      GLADYS_VALID_POLL_FREQUENCIES_MS.includes(device.poll_frequency),
+      `poll_frequency ${device.poll_frequency} is not one of Gladys' accepted values - Gladys rejects the whole discovered-device publish with "invalid poll frequency" otherwise`,
+    );
+    assert.equal(device.poll_frequency, GLADYS_POLL_FREQUENCY_IN_MS);
   });
 
   test('every feature declares a non-null min/max (Gladys rejects the device otherwise)', () => {
@@ -221,5 +233,21 @@ describe('setDeviceValue', () => {
       setDeviceValue(async () => {}, target, { external_id: 'x:unknown' }, 1),
       /unsupported feature/,
     );
+  });
+});
+
+describe('shouldPoll', () => {
+  test('polls when never polled before', () => {
+    assert.equal(shouldPoll(undefined, Date.now(), 600_000), true);
+  });
+
+  test('does not poll again before the interval has elapsed', () => {
+    const now = 1_000_000;
+    assert.equal(shouldPoll(now - 599_000, now, 600_000), false);
+  });
+
+  test('polls again once the interval has fully elapsed', () => {
+    const now = 1_000_000;
+    assert.equal(shouldPoll(now - 600_000, now, 600_000), true);
   });
 });

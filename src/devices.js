@@ -19,7 +19,7 @@ import {
   CONFIG_SCHEMA_KEYS,
   DEFAULT_HTTP_PORT,
   FULLY_CMD,
-  POLL_FREQUENCY_IN_MS,
+  GLADYS_POLL_FREQUENCY_IN_MS,
 } from './constants.js';
 
 /**
@@ -261,8 +261,24 @@ export function convertToGladysDevice(gladys, deviceInfo) {
     params,
     features,
     should_poll: true,
-    poll_frequency: POLL_FREQUENCY_IN_MS,
+    poll_frequency: GLADYS_POLL_FREQUENCY_IN_MS,
   };
+}
+
+/**
+ * Whether enough time has passed to actually poll a tablet over HTTP -
+ * Gladys calls onPoll every GLADYS_POLL_FREQUENCY_IN_MS (its own maximum,
+ * see constants.js); this throttles that down to the slower
+ * HTTP_POLL_INTERVAL_MS this integration actually wants.
+ * @param {number|undefined} lastPolledAt - Epoch ms of the tablet's last real poll, or undefined if never polled.
+ * @param {number} now - Current epoch ms.
+ * @param {number} minIntervalMs - Minimum interval between two real polls.
+ * @returns {boolean} True if a real poll should happen now.
+ * @example
+ * shouldPoll(undefined, Date.now(), HTTP_POLL_INTERVAL_MS); // true (never polled yet)
+ */
+export function shouldPoll(lastPolledAt, now, minIntervalMs) {
+  return !lastPolledAt || now - lastPolledAt >= minIntervalMs;
 }
 
 /**

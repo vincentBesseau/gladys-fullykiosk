@@ -72,14 +72,27 @@ export const DEFAULT_MQTT_PORT = 1883;
 export const DEFAULT_MQTT_TOPIC_PREFIX = 'fully';
 export const DEFAULT_HTTP_PORT = 2323;
 
-// How often Gladys calls onPoll (HTTP fallback, see index.js) for each
-// tablet. Fully Kiosk's own periodic MQTT report does not necessarily carry
-// every field (e.g. "current page" was observed missing from it, present in
-// the full HTTP deviceInfo response) - polling is this integration's only
-// way to keep those fields fresh, not just a startup fallback. 10 minutes:
-// a kiosk's foreground page does not need second-by-second freshness, and
-// this is one extra HTTP request to the tablet per tick.
-export const POLL_FREQUENCY_IN_MS = 10 * 60 * 1000;
+// How often Gladys itself calls onPoll (HTTP fallback, see index.js) for
+// each tablet. Fully Kiosk's own periodic MQTT report does not necessarily
+// carry every field (e.g. "current page" was observed missing from it,
+// present in the full HTTP deviceInfo response) - polling is this
+// integration's only way to keep those fields fresh, not just a startup
+// fallback. Gladys' device.poll_frequency is NOT an arbitrary duration: the
+// core rejects any value outside its own DEVICE_POLL_FREQUENCIES enum
+// (server/utils/constants.js), whose slowest option is "every minute" -
+// confirmed live (a longer value throws "invalid poll frequency" and the
+// whole discovered-device publish is rejected). This is the max Gladys will
+// ever call onPoll at.
+export const GLADYS_POLL_FREQUENCY_IN_MS = 60 * 1000;
+
+// Actual desired cadence for the HTTP request this integration makes to a
+// tablet - slower than GLADYS_POLL_FREQUENCY_IN_MS, since a kiosk's
+// foreground page does not need minute-by-minute freshness. Gladys cannot be
+// told to call onPoll this infrequently (see above), so onPoll is invoked
+// every GLADYS_POLL_FREQUENCY_IN_MS as usual but only actually acts once
+// this much time has passed since the tablet's last real poll (per-device
+// throttle, see shouldPoll in src/devices.js).
+export const HTTP_POLL_INTERVAL_MS = 10 * 60 * 1000;
 
 // Fully Kiosk's own REST server can be slow to answer while the tablet is
 // asleep/under load - long enough to cover that, short enough to not hang a

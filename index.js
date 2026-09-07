@@ -17,6 +17,7 @@ import {
   buildStatesFromDeviceInfo,
   resolveHttpTarget,
   setDeviceValue,
+  shouldPoll,
 } from './src/devices.js';
 import {
   ensureManagedBrokerCredentials,
@@ -33,9 +34,15 @@ import {
   DEFAULT_MQTT_PORT,
   DEFAULT_MQTT_TOPIC_PREFIX,
   REPUBLISH_DEBOUNCE_MS,
+  HTTP_POLL_INTERVAL_MS,
 } from './src/constants.js';
 
 const gladys = new GladysIntegration();
+
+// Epoch ms of each device's last REAL poll (external_id -> timestamp) - see
+// shouldPoll in src/devices.js: Gladys calls onPoll every 60s (its own
+// maximum poll_frequency), this throttles that down further.
+const lastPolledAt = new Map();
 
 // Latest known deviceInfo per Fully Kiosk deviceId - the discovery cache this
 // integration publishes from. Lost on restart, rebuilt from the next round of
@@ -234,6 +241,12 @@ gladys.onSetValue(async (device, feature, value) => {
 // Fallback / on-demand refresh, complementing the MQTT push - useful right
 // after a tablet is created, before its next scheduled MQTT report.
 gladys.onPoll(async (device) => {
+  const now = Date.now();
+  if (!shouldPoll(lastPolledAt.get(device.external_id), now, HTTP_POLL_INTERVAL_MS)) {
+    return;
+  }
+  lastPolledAt.set(device.external_id, now);
+
   logger.info(`onPoll <- ${device.name}`);
   try {
     const config = (await gladys.getConfig()) || {};
