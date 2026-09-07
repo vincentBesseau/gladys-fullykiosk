@@ -1,6 +1,6 @@
 {
   "name": "gladys-fullykiosk",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "private": true,
   "description": "External integration to discover Fully Kiosk Browser Android tablets via MQTT and control them through their local HTTP REST API.",
   "type": "module",

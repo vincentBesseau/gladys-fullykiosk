@@ -44,6 +44,16 @@ const gladys = new GladysIntegration();
 // maximum poll_frequency), this throttles that down further.
 const lastPolledAt = new Map();
 
+// The managed-broker credentials last used to (re)write its config and start
+// it - see resolveBrokerConnection. connectMqttFromConfig can run more than
+// once in a row with nothing actually different (e.g. the 'connected' event
+// and an initial onConfigUpdated both firing at startup): re-running
+// startContainer on an already-running container restarts it (observed
+// live: "mosquitto version 2.0.18 terminating" seconds after "running",
+// briefly dropping every already-connected client, tablets included) - this
+// skips that when the credentials haven't changed since the last start.
+let lastManagedBrokerCredentials;
+
 // Latest known deviceInfo per Fully Kiosk deviceId - the discovery cache this
 // integration publishes from. Lost on restart, rebuilt from the next round of
 // MQTT reports (Fully Kiosk re-publishes deviceInfo periodically on its own).
@@ -136,6 +146,9 @@ async function resolveBrokerConnection(config) {
 
   if (mode === BROKER_MODE.EXTERNAL) {
     await gladys.stopContainer(MANAGED_BROKER.CONTAINER_NAME).catch(() => {});
+    // Force the next switch back to managed mode to call startContainer
+    // again, even with unchanged credentials - it was just stopped.
+    lastManagedBrokerCredentials = undefined;
     const host = config[CONFIG_SCHEMA_KEYS.MQTT_HOST];
     if (!host) {
       return null;
@@ -150,8 +163,14 @@ async function resolveBrokerConnection(config) {
   }
 
   const { username, password } = await ensureManagedBrokerCredentials(gladys);
-  writeManagedBrokerConfig(username, password);
-  await gladys.startContainer(MANAGED_BROKER.CONTAINER_NAME);
+  const alreadyStarted =
+    lastManagedBrokerCredentials?.username === username &&
+    lastManagedBrokerCredentials?.password === password;
+  if (!alreadyStarted) {
+    writeManagedBrokerConfig(username, password);
+    await gladys.startContainer(MANAGED_BROKER.CONTAINER_NAME);
+    lastManagedBrokerCredentials = { username, password };
+  }
   return {
     url: `mqtt://${MANAGED_BROKER.CONTAINER_NAME}:${MANAGED_BROKER.CONTAINER_PORT}`,
     username,
