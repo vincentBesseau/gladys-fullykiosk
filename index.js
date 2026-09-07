@@ -266,13 +266,16 @@ gladys.onPoll(async (device) => {
   }
   lastPolledAt.set(device.external_id, now);
 
-  logger.info(`onPoll <- ${device.name}`);
+  // Gladys' onPoll payload does not reliably carry `name` - fall back to the
+  // external_id so the Journaux stay readable either way.
+  const deviceLabel = device.name || device.external_id;
+  logger.info(`onPoll <- ${deviceLabel}`);
   try {
     const config = (await gladys.getConfig()) || {};
     const target = resolveHttpTarget(config, device);
     const deviceInfo = normalizeDeviceInfo(await getDeviceInfo(target));
     if (!deviceInfo) {
-      logger.info(`onPoll -> ${device.name}: deviceInfo response was not recognized`);
+      logger.info(`onPoll -> ${deviceLabel}: deviceInfo response was not recognized`);
       return;
     }
     knownDevices.set(deviceInfo.deviceId, deviceInfo);
@@ -280,9 +283,9 @@ gladys.onPoll(async (device) => {
     if (states.length > 0) {
       await gladys.publishStates(states);
     }
-    logger.info(`onPoll -> ${device.name}: published ${states.length} state(s)`);
+    logger.info(`onPoll -> ${deviceLabel}: published ${states.length} state(s)`);
   } catch (e) {
-    logger.error(`onPoll -> ${device.name} failed: ${e.message}`);
+    logger.error(`onPoll -> ${deviceLabel} failed: ${e.message}`);
   }
 });
 
